@@ -1,20 +1,21 @@
 # Podium: from mockup to a hyper-realistic, real-time rehearsal room
 
-## 1. What the mockup proves (and what it doesn't)
+## 1. What the prototype does now (and what it doesn't)
 
-`index.html` is a single-file prototype of the full product loop:
-
-| Piece | In the mockup | Production target |
+| Piece | In the prototype | Production target |
 |---|---|---|
-| Room choice | 5 procedural venues (boardroom, classroom, lecture hall, keynote stage, banquet) | Photoreal captured or generated venues, plus the user's own room |
-| Audience size | 3–300 seats, laid out for each venue | Same range, with LOD so 300+ stays real-time |
-| Audience curation | Age mix, dress code, temperament, subject knowledge, phone habit, a front-row skeptic, reshuffle | Per-person editor: face, body, clothing, persona, plus saved "crowds" |
-| Teleprompter | Overlay that follows your voice (fuzzy word matching with skip recovery) or auto-scrolls | Same, plus pacing cues ("pause here", "slow down") inline |
-| Live listening | Web Audio for volume, pitch (autocorrelation) and pauses; Web Speech API for words | Streaming STT with word timestamps + prosody model + LLM meaning loop |
-| Reactions | Per-person brain (engagement, confusion, patience, expertise) drives lean, nods on emphasis, head tilt and furrowed brows, phones, looking away, crossed arms, applause | Same brain driving full-body and facial animation on digital humans |
-| Analysis | Live meters + feed, end-of-talk report with timeline, moments, and tips; optional Claude coaching inside claude.ai | Same, plus video replay with the room's reactions overlaid |
+| Room choice | 5 venues: boardroom, classroom, lecture hall, auditorium, banquet hall | Photoreal captured or generated venues, plus the user's own room |
+| People | 26 rigged, textured humans from Microsoft Rocketbox (MIT), seated and animated in the browser | MetaHuman-grade digital humans with full facial animation |
+| Audience size | 3–160 seats depending on venue | 300+ with LOD |
+| Curation | Pick exactly who attends (face grid, Business / Mixed / Casual presets), plus mood, topic knowledge, phones and a front-row skeptic | Per-seat editor, saved crowds |
+| Teleprompter | Follows your voice (fuzzy matching that recovers when you skip ahead) or auto-scrolls; import .txt, .md, .docx or .pdf | Same, plus inline pacing cues |
+| Live listening | Web Audio for volume, pitch and pauses; Web Speech API for words | Streaming STT with word timestamps, a prosody model, an LLM meaning loop |
+| Reactions | Each person's state drives posture, head and eye direction, saccades, blinks, brows, smile, nods on emphasis, phones, crossed arms, hand to chin, applause | Same brain driving full facial performance |
+| Analysis | Kept for the end: score, four key numbers, attention and confusion timeline with hover, key moments with what you were saying, next steps, optional Claude coaching | Same, plus video replay with reactions overlaid |
 
-**What it does not do:** the people are stylised mannequins, not hyper-realistic humans. Photorealism takes a game-engine renderer and digital-human assets (section 2). The browser's speech recognition also drops "um" and "uh" fairly often, so filler counts run low. A production STT fixes that (section 3).
+**How realistic are the people?** Rocketbox avatars are game-quality digital humans with real skin textures, clothing and hair, built for research on virtual audiences. They read as real people at a glance, especially from a few metres away. Up close they're short of photoreal: hair is alpha cards, skin has no subsurface scattering, and facial expressions come from bones, not scanned blendshapes. The browser can't render better than this in real time for a whole room. The next step up is Route A below.
+
+**Known gap:** the browser's speech recognition often drops "um" and "uh", so filler counts run low. A production STT fixes that (section 3).
 
 ## 2. Making it look real: three rendering routes
 
