@@ -1,0 +1,1119 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Podium Rehearsal Stage</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;800&family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: full-bleed 3D room from the speaker's eye line; set-up drawer left, live reactions right,
+   confidence-monitor teleprompter top-centre, instrument strip along the bottom. Single dark "house lights down" look. */
+:root{
+  --house:#0b0f19;          /* the dark of an auditorium */
+  --panel:rgba(14,19,31,.88);
+  --panel-solid:#121828;
+  --line:#26304a;
+  --ink:#ece6d9;            /* warm paper white */
+  --muted:#8e97ae;
+  --amber:#ffb24a;          /* stage lamp */
+  --amber-dim:rgba(255,178,74,.16);
+  --good:#5cd39a;
+  --warn:#ff8d3f;
+  --bad:#ff5d6c;
+  --puzzle:#a594ff;         /* confusion */
+  --f-display:"Big Shoulders Display","Arial Narrow",Impact,sans-serif;
+  --f-body:"Atkinson Hyperlegible",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+  --r:10px;
+  color-scheme:dark;
+}
+html,body{height:100%;margin:0}
+[hidden]{display:none!important}
+body{background:var(--house);color:var(--ink);font:14px/1.45 var(--f-body);overflow:hidden}
+#scene{position:fixed;inset:0;display:block;width:100%;height:100%;touch-action:none}
+button,select,input,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+.eyebrow{font:600 11px/1 var(--f-mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+
+/* top bar */
+.topbar{position:fixed;top:calc(12px + env(safe-area-inset-top,0px));left:max(16px,env(safe-area-inset-left,0px));right:max(16px,env(safe-area-inset-right,0px));display:flex;align-items:center;gap:12px;pointer-events:none;z-index:5}
+.brand{font:800 26px/1 var(--f-display);letter-spacing:.06em;text-transform:uppercase;color:var(--amber)}
+.roomname{font:600 13px var(--f-mono);color:var(--muted)}
+.pill{font:600 11px/1 var(--f-mono);letter-spacing:.1em;padding:6px 9px;border-radius:99px;border:1px solid var(--line);background:var(--panel)}
+.pill.live{color:#1a0d00;background:var(--bad);border-color:var(--bad)}
+.pill.live::before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:#1a0d00;margin-right:6px;animation:blink 1s infinite}
+@keyframes blink{50%{opacity:.25}}
+.topbar .spacer{flex:1}
+.topbar button{pointer-events:auto}
+.toggle-btn{display:none;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:7px 10px;font:600 12px var(--f-mono)}
+
+/* setup drawer */
+#setup{position:fixed;left:max(16px,env(safe-area-inset-left,0px));top:calc(56px + env(safe-area-inset-top,0px));bottom:calc(132px + env(safe-area-inset-bottom,0px));width:300px;overflow:auto;padding:14px;z-index:4;display:flex;flex-direction:column;gap:16px}
+#setup h2{margin:0;font:800 20px/1 var(--f-display);letter-spacing:.04em;text-transform:uppercase}
+.group{display:flex;flex-direction:column;gap:8px}
+.rooms{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.room-card{text-align:left;background:transparent;border:1px solid var(--line);border-radius:8px;padding:8px;display:flex;flex-direction:column;gap:2px}
+.room-card b{font:700 13px var(--f-body)}
+.room-card span{font-size:11px;color:var(--muted);line-height:1.3}
+.room-card[aria-pressed="true"]{border-color:var(--amber);background:var(--amber-dim)}
+.field{display:flex;flex-direction:column;gap:4px}
+.field label{display:flex;justify-content:space-between;font-size:12px;color:var(--muted)}
+.field label output{font:600 12px var(--f-mono);color:var(--ink)}
+.scale{display:flex;justify-content:space-between;font-size:10.5px;color:var(--muted)}
+input[type=range]{width:100%;accent-color:var(--amber)}
+select{background:var(--panel-solid);border:1px solid var(--line);border-radius:6px;padding:6px 8px}
+.check{display:flex;gap:8px;align-items:center;font-size:12.5px}
+.check input{accent-color:var(--amber)}
+textarea{background:var(--panel-solid);border:1px solid var(--line);border-radius:8px;padding:8px;min-height:120px;resize:vertical;font-size:12.5px;line-height:1.45}
+.btn{border-radius:8px;border:1px solid var(--line);background:var(--panel-solid);padding:8px 12px;font-weight:700}
+.btn:hover{border-color:var(--muted)}
+.btn.primary{background:var(--amber);border-color:var(--amber);color:#1e1200}
+.btn.danger{background:var(--bad);border-color:var(--bad);color:#200307}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.row{display:flex;gap:6px;flex-wrap:wrap}
+
+/* teleprompter */
+#prompter{position:fixed;top:calc(56px + env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);width:min(680px,calc(100vw - 680px));min-width:340px;z-index:3;padding:10px 14px 12px;background:rgba(5,7,12,var(--pOpacity,.62));border:1px solid rgba(255,255,255,.08);border-radius:var(--r)}
+#prompter .bar{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+#prompter .bar .eyebrow{flex:1}
+#prompter .bar button{background:transparent;border:1px solid var(--line);border-radius:6px;padding:2px 8px;font:600 11px var(--f-mono);color:var(--muted)}
+#prompter .bar button[aria-pressed="true"]{color:var(--amber);border-color:var(--amber)}
+#ptext{height:calc(var(--pSize,26px) * 1.4 * 3);overflow:hidden;font:700 var(--pSize,26px)/1.4 var(--f-body);color:rgba(236,230,217,.92);position:relative;mask-image:linear-gradient(transparent 0,#000 22%,#000 78%,transparent);-webkit-mask-image:linear-gradient(transparent 0,#000 22%,#000 78%,transparent)}
+#ptext .inner{position:relative;padding-block:calc(var(--pSize,26px)*1.4)}
+#ptext span.said{color:rgba(236,230,217,.32)}
+#ptext span.now{color:var(--amber);text-decoration:underline;text-decoration-thickness:3px;text-underline-offset:5px}
+#prompter.hidden-text #ptext{display:none}
+
+/* live feed */
+#feed{position:fixed;right:max(16px,env(safe-area-inset-right,0px));top:calc(56px + env(safe-area-inset-top,0px));bottom:calc(132px + env(safe-area-inset-bottom,0px));width:280px;z-index:4;display:flex;flex-direction:column;padding:12px;gap:10px}
+#feedList{list-style:none;margin:0;padding:0;overflow:auto;flex:1;display:flex;flex-direction:column;gap:6px;min-height:0}
+#feedList li{font-size:12.5px;line-height:1.35;padding:7px 9px;border-radius:7px;background:rgba(255,255,255,.03);border-left:3px solid var(--muted);animation:in .35s ease}
+#feedList li time{font:600 10.5px var(--f-mono);color:var(--muted);display:block;margin-bottom:2px}
+#feedList li.good{border-color:var(--good)}#feedList li.warn{border-color:var(--warn)}#feedList li.bad{border-color:var(--bad)}#feedList li.puzzle{border-color:var(--puzzle)}
+@keyframes in{from{opacity:.2;transform:translateX(8px)}}
+#transcript{font-size:12px;color:var(--muted);max-height:84px;overflow:hidden;border-top:1px solid var(--line);padding-top:8px;display:flex;flex-direction:column;justify-content:flex-end}
+#transcript .f{color:var(--warn)} #transcript .j{color:var(--puzzle)}
+
+/* instrument strip */
+#hud{position:fixed;left:max(16px,env(safe-area-inset-left,0px));right:max(16px,env(safe-area-inset-right,0px));bottom:calc(12px + env(safe-area-inset-bottom,0px));z-index:5;padding:10px 12px;display:flex;gap:14px;align-items:stretch;flex-wrap:wrap}
+.controls{display:flex;flex-direction:column;gap:6px;justify-content:center;min-width:180px}
+.meters{flex:1;display:grid;grid-template-columns:repeat(6,minmax(96px,1fr));gap:10px;min-width:0}
+.meter{display:flex;flex-direction:column;gap:5px;min-width:0}
+.meter .val{font:600 20px/1 var(--f-mono);font-variant-numeric:tabular-nums}
+.meter .val small{font-size:11px;color:var(--muted);margin-left:3px}
+.meter .note{font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.track{position:relative;height:6px;border-radius:3px;background:rgba(255,255,255,.08);overflow:hidden}
+.track i{position:absolute;left:0;top:0;bottom:0;width:0;background:var(--amber);border-radius:3px;transition:width .2s}
+.track .band{position:absolute;top:0;bottom:0;background:rgba(92,211,154,.25)}
+.meter.ok .val{color:var(--good)}.meter.hot .val{color:var(--warn)}.meter.bad .val{color:var(--bad)}
+.status{font-size:11.5px;color:var(--muted);max-width:220px}
+
+/* inspector */
+#inspect{position:fixed;z-index:6;width:220px;padding:10px 12px;pointer-events:none;display:flex;flex-direction:column;gap:6px}
+#inspect b{font:800 18px/1 var(--f-display);letter-spacing:.03em}
+#inspect .sub{font-size:11.5px;color:var(--muted)}
+#inspect .kv{display:grid;grid-template-columns:76px 1fr;gap:4px 8px;align-items:center;font-size:11.5px}
+#inspect .state{font:600 11px var(--f-mono);color:var(--amber);text-transform:uppercase;letter-spacing:.08em}
+
+/* report */
+#report{position:fixed;inset:0;z-index:10;background:rgba(4,6,10,.7);display:flex;align-items:flex-start;justify-content:center;overflow:auto;padding-block:max(24px,env(safe-area-inset-top,0px));padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+#report .sheet{background:var(--panel-solid);border:1px solid var(--line);border-radius:14px;max-width:880px;width:100%;padding:24px;display:flex;flex-direction:column;gap:20px}
+#report h2{margin:0;font:800 40px/1 var(--f-display);text-transform:uppercase;letter-spacing:.03em;text-wrap:balance}
+.score-row{display:flex;gap:18px;align-items:center;flex-wrap:wrap}
+.big{font:800 72px/0.9 var(--f-display);color:var(--amber)}
+.big small{font-size:24px;color:var(--muted)}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.stat{border:1px solid var(--line);border-radius:8px;padding:10px;display:flex;flex-direction:column;gap:4px;min-width:0}
+.stat .v{font:600 22px/1 var(--f-mono);font-variant-numeric:tabular-nums}
+.stat .l{font-size:11.5px;color:var(--muted)}
+#chart{width:100%;height:180px;display:block}
+.legend{display:flex;gap:14px;font-size:12px;color:var(--muted)}
+.legend i{display:inline-block;width:14px;height:3px;border-radius:2px;margin-right:6px;vertical-align:middle}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.two>div{min-width:0}
+.two h3{margin:0 0 8px;font:800 18px/1 var(--f-display);text-transform:uppercase;letter-spacing:.05em}
+.moments,.tips{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.moments li{font-size:13px;border-left:3px solid var(--puzzle);padding-left:10px}
+.moments li.drop{border-color:var(--bad)} .moments li.peak{border-color:var(--good)}
+.moments li time{font:600 11px var(--f-mono);color:var(--muted);margin-right:6px}
+.moments q{color:var(--muted);font-style:italic;display:block}
+.tips li{font-size:13px;padding-left:16px;position:relative}
+.tips li::before{content:"";position:absolute;left:0;top:7px;width:7px;height:7px;border-radius:50%;background:var(--amber)}
+#coach{white-space:pre-wrap;font-size:13.5px;line-height:1.55;border:1px solid var(--line);border-radius:8px;padding:12px;max-height:340px;overflow:auto}
+.msg{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(150px + env(safe-area-inset-bottom,0px));z-index:9;padding:10px 14px;max-width:min(520px,calc(100vw - 32px));font-size:13px}
+
+@media (max-width:1180px){
+  #prompter{width:min(640px,calc(100vw - 32px));min-width:0;top:calc(100px + env(safe-area-inset-top,0px))}
+  #setup,#feed{display:none;top:calc(56px + env(safe-area-inset-top,0px));z-index:7}
+  body.show-setup #setup{display:flex}
+  body.show-feed #feed{display:flex}
+  .toggle-btn{display:inline-block}
+  .meters{grid-template-columns:repeat(3,minmax(90px,1fr))}
+  #setup,#feed{bottom:calc(200px + env(safe-area-inset-bottom,0px))}
+}
+@media (max-width:640px){
+  #setup,#feed{left:max(16px,env(safe-area-inset-left,0px));right:max(16px,env(safe-area-inset-right,0px));width:auto}
+  #hud{gap:10px}
+  .controls{flex-direction:row;flex-wrap:wrap;min-width:0;width:100%}
+  .meters{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+  .meter .val{font-size:16px}
+  #setup,#feed{bottom:calc(270px + env(safe-area-inset-bottom,0px))}
+  .stats{grid-template-columns:repeat(2,1fr)}
+  .two{grid-template-columns:1fr}
+  .roomname{display:none}
+  #report h2{font-size:30px}
+  .big{font-size:56px}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<canvas id="scene" aria-label="3D view of the room from the speaker's position"></canvas>
+
+<header class="topbar">
+  <span class="brand">Podium</span>
+  <span class="roomname" id="roomLabel">Keynote stage · 200 people</span>
+  <span class="pill" id="statePill">REHEARSAL</span>
+  <span class="spacer"></span>
+  <button class="toggle-btn" id="tSetup" aria-controls="setup">Room</button>
+  <button class="toggle-btn" id="tFeed" aria-controls="feed">Reactions</button>
+</header>
+
+<aside id="setup" class="panel" aria-label="Room and audience set-up">
+  <h2>Set the room</h2>
+  <div class="group">
+    <span class="eyebrow">Venue</span>
+    <div class="rooms" id="rooms"></div>
+  </div>
+  <div class="group">
+    <span class="eyebrow">Audience</span>
+    <div class="field"><label for="size">Headcount <output id="sizeOut">200</output></label><input type="range" id="size" min="60" max="300" value="200"></div>
+    <div class="field"><label for="age">Who's in the seats</label>
+      <select id="age"><option value="students">Students (18–25)</option><option value="young">Young professionals</option><option value="mixed" selected>Mixed ages</option><option value="senior">Senior leadership</option></select></div>
+    <div class="field"><label for="dress">Dress code</label>
+      <select id="dress"><option value="casual">Casual</option><option value="smart" selected>Business casual</option><option value="formal">Business formal</option><option value="blacktie">Black tie</option></select></div>
+    <div class="field"><label for="temper">Temperament</label><input type="range" id="temper" min="0" max="100" value="40"><div class="scale"><span>Warm, supportive</span><span>Tough crowd</span></div></div>
+    <div class="field"><label for="expert">Subject knowledge</label><input type="range" id="expert" min="0" max="100" value="35"><div class="scale"><span>Newcomers</span><span>Domain experts</span></div></div>
+    <div class="field"><label for="phones">Phone habit</label><input type="range" id="phones" min="0" max="100" value="45"><div class="scale"><span>Rapt</span><span>Always scrolling</span></div></div>
+    <label class="check"><input type="checkbox" id="skeptic" checked> Seat a skeptic in the front row</label>
+    <div class="row"><button class="btn" id="shuffle">Shuffle faces</button></div>
+  </div>
+  <div class="group">
+    <span class="eyebrow">Your speech</span>
+    <textarea id="script" aria-label="Speech text for the teleprompter"></textarea>
+    <div class="row"><button class="btn" id="resetScript">Load sample speech</button></div>
+  </div>
+</aside>
+
+<section id="prompter" aria-label="Teleprompter">
+  <div class="bar">
+    <span class="eyebrow">Teleprompter</span>
+    <button id="pFollow" aria-pressed="true" title="Advance as you speak">Follow voice</button>
+    <button id="pAuto" aria-pressed="false" title="Scroll at a fixed 140 words per minute">Auto 140</button>
+    <button id="pSmaller" aria-label="Smaller text">A−</button>
+    <button id="pBigger" aria-label="Larger text">A+</button>
+    <button id="pHide" aria-pressed="false">Hide</button>
+  </div>
+  <div id="ptext"><div class="inner" id="pinner"></div></div>
+</section>
+
+<aside id="feed" class="panel" aria-label="Live audience reactions">
+  <span class="eyebrow">What the room is doing</span>
+  <ol id="feedList"></ol>
+  <div id="transcript" aria-live="off"></div>
+</aside>
+
+<footer id="hud" class="panel">
+  <div class="controls">
+    <div class="row">
+      <button class="btn primary" id="btnMic">Start speaking</button>
+      <button class="btn" id="btnDemo" title="Plays the sample speech through the analysis engine, no microphone needed">Run demo</button>
+      <button class="btn danger" id="btnEnd" hidden>End &amp; analyze</button>
+    </div>
+    <span class="status" id="status">Drag the view to look around. Click anyone to see what they're thinking.</span>
+  </div>
+  <div class="meters">
+    <div class="meter" id="mPace"><span class="eyebrow">Pace</span><span class="val">—<small>wpm</small></span><div class="track"><span class="band" style="left:52%;width:12%"></span><i></i></div><span class="note">Aim for 130–160</span></div>
+    <div class="meter" id="mVol"><span class="eyebrow">Volume</span><span class="val">—</span><div class="track"><i></i></div><span class="note">Project to the back row</span></div>
+    <div class="meter" id="mPitch"><span class="eyebrow">Vocal variety</span><span class="val">—<small>st</small></span><div class="track"><i></i></div><span class="note">Pitch range, last 7 s</span></div>
+    <div class="meter" id="mFill"><span class="eyebrow">Fillers</span><span class="val">0</span><div class="track"><i></i></div><span class="note">um, uh, like, you know</span></div>
+    <div class="meter" id="mClar"><span class="eyebrow">Clarity</span><span class="val">—</span><div class="track"><i></i></div><span class="note">Rambling, jargon, fillers</span></div>
+    <div class="meter" id="mEng"><span class="eyebrow">Room engagement</span><span class="val">—</span><div class="track"><i></i></div><span class="note" id="engNote">Waiting for you to start</span></div>
+  </div>
+</footer>
+
+<div id="inspect" class="panel" hidden></div>
+<div id="msg" class="panel msg" hidden></div>
+
+<div id="report" hidden>
+  <div class="sheet" role="dialog" aria-labelledby="repTitle">
+    <div class="row" style="justify-content:space-between;align-items:flex-start">
+      <div><span class="eyebrow" id="repMeta">Session report</span><h2 id="repTitle">How the room heard you</h2></div>
+      <button class="btn" id="repClose">Back to the room</button>
+    </div>
+    <div class="score-row"><div class="big" id="repScore">—<small>/100</small></div><p id="repSummary" style="flex:1;min-width:220px;margin:0;font-size:15px"></p></div>
+    <div class="stats" id="repStats"></div>
+    <div>
+      <div class="legend"><span><i style="background:var(--amber)"></i>Engagement</span><span><i style="background:var(--puzzle)"></i>Confusion</span><span><i style="background:var(--muted)"></i>Pace (wpm, right axis)</span></div>
+      <canvas id="chart"></canvas>
+    </div>
+    <div class="two">
+      <div><h3>Moments the room moved</h3><ul class="moments" id="repMoments"></ul></div>
+      <div><h3>Work on next</h3><ul class="tips" id="repTips"></ul></div>
+    </div>
+    <div class="group" id="coachWrap" hidden>
+      <div class="row" style="align-items:center;justify-content:space-between"><h3 style="margin:0;font:800 18px/1 var(--f-display);text-transform:uppercase;letter-spacing:.05em">Coach's read</h3><button class="btn primary" id="btnCoach">Ask Claude for coaching</button></div>
+      <div id="coach" hidden></div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+"use strict";
+/* =========================================================================
+   PODIUM — rehearsal stage mockup
+   Pipeline:  mic ─▶ Web Audio (volume, pitch, pauses) ─┐
+              mic ─▶ Web Speech API (words)  ────────────┼─▶ signals ─▶ audience brain ─▶ 3D poses + feed
+              demo simulator (same interface)  ──────────┘
+   ========================================================================= */
+const $ = s => document.querySelector(s);
+const clamp = (v,a=0,b=1) => Math.max(a,Math.min(b,v));
+const lerp = (a,b,t) => a+(b-a)*t;
+const now = () => performance.now();
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+let rnd = mulberry32(7);
+const R = (a,b) => a+(b-a)*rnd();
+const pick = a => a[Math.floor(rnd()*a.length)];
+const store = { get(k){try{return localStorage.getItem(k)}catch(e){return null}}, set(k,v){try{localStorage.setItem(k,v)}catch(e){}} };
+
+/* ---------------- sample speech ---------------- */
+const SAMPLE = `Good evening, council members. My name is Dana, and I ride Main Street every single morning. Tonight I want to ask you for one thing: a protected bike lane from the train station to the hospital.
+
+Here is why it matters. Last year, there were forty-one crashes on that stretch. Nine of them involved someone on a bike. Every one of those people was on their way to work, to school, or to a shift at the hospital.
+
+A protected lane is not paint. It is a curb, a planter, a few inches of concrete between a person and a truck. Cities that have built them have seen injuries drop by as much as forty percent.
+
+It is also cheaper than you think. The full mile costs less than resurfacing two blocks of road, and we can pay for most of it with the state safe streets grant that opens next month.
+
+I know parking is the worry. So we counted. On a typical weekday, the spaces we would remove are less than half full, and the garage on Fifth has two hundred empty spots.
+
+So here is my ask. Vote yes on the pilot. Give it twelve months. Measure the crashes, measure the business on Main Street, and let the numbers decide. Thank you.`;
+
+/* Demo performance of the sample: segments with delivery traits. *word* = emphasis. */
+const DEMO = [
+  {p:0, wpm:138, energy:.75, variety:.85, pause:850},
+  {p:1, wpm:142, energy:.8, variety:.9, pause:900, emph:["forty-one","Nine","Every"]},
+  {ramble:true, wpm:182, energy:.42, variety:.12, pause:120, text:"And so, um, basically what I'm, like, trying to say is that the, uh, the the infrastructure piece is kind of multifaceted, you know, there's a lot of stakeholders and we could leverage synergies across the multimodal paradigm going forward, and also the budget stuff and the zoning, which is, um, sort of a whole other thing that we could circle back on, and, uh, yeah."},
+  {p:2, wpm:136, energy:.78, variety:.8, pause:1100, emph:["not","forty"]},
+  {p:3, wpm:198, energy:.5, variety:.3, pause:160},
+  {p:4, wpm:132, energy:.72, variety:.75, pause:1900, emph:["counted","two"]},
+  {p:5, wpm:128, energy:.9, variety:.95, pause:900, emph:["yes","twelve","numbers","Thank"]},
+];
+
+/* ---------------- lexicons ---------------- */
+const FILLER1 = new Set(["um","umm","uh","uhh","erm","er","ah","hmm","mm","basically","literally","actually","yeah"]);
+const FILLER2 = new Set(["you know","kind of","sort of","i mean","you see","or something"]);
+const LIKE_OK = new Set(["i","you","we","they","would","do","dont","look","looks","feel","feels","seem","seems","something","anything","nothing","more","much","be","just","not"]);
+const JARGON = new Set(["leverage","synergy","synergies","paradigm","multimodal","stakeholders","stakeholder","bandwidth","holistic","actionable","ideate","scalable","deliverables","operationalize","ecosystem","verticals","kpis","kpi","roi","granular","alignment","multifaceted","onboarding","learnings","optimize","optimization","throughput","modality","incentivize","disruptive","workstream","circle"]);
+const norm = w => w.toLowerCase().replace(/[^a-z0-9'\-]/g,"").replace(/^'+|'+$/g,"");
+
+/* ---------------- rooms ---------------- */
+const ROOMS = {
+  boardroom:{label:"Boardroom", blurb:"Pitch to a leadership team", min:3, max:14, def:8},
+  classroom:{label:"Classroom", blurb:"Class talk or workshop", min:6, max:36, def:24},
+  lecture:{label:"Lecture hall", blurb:"Tiered seats, conference talk", min:30, max:180, def:90},
+  keynote:{label:"Keynote stage", blurb:"Spotlit stage, dark house", min:60, max:300, def:200},
+  banquet:{label:"Banquet hall", blurb:"Wedding toast, awards dinner", min:8, max:96, def:48},
+};
+const cfg = { room:"keynote", size:200, age:"mixed", dress:"smart", temper:40, expert:35, phones:45, skeptic:true, seed:7 };
+
+/* =========================================================================
+   THREE.JS SCENE
+   ========================================================================= */
+const canvas = $("#scene");
+const renderer = new THREE.WebGLRenderer({canvas, antialias:true, powerPreference:"high-performance"});
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+renderer.outputEncoding = THREE.sRGBEncoding;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = .9;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(58, 1, 0.05, 120);
+let roomGroup = new THREE.Group(); scene.add(roomGroup);
+let SHADOWS = false;
+let view = {base:new THREE.Vector3(), look:new THREE.Vector3(), yaw:0, pitch:0, tYaw:0, tPitch:0};
+
+function resize(){ const w=innerWidth, h=innerHeight; renderer.setSize(w,h,false); camera.aspect=w/h; camera.fov = w/h<0.8 ? 72 : 58; camera.updateProjectionMatrix(); }
+addEventListener("resize", resize);
+
+/* shared geometry */
+const G = {};
+function sg(g){ g.userData.shared=true; return g; }
+G.pelvis=sg(new THREE.BoxGeometry(0.34,0.14,0.3));
+G.thigh=sg(new THREE.CylinderGeometry(0.078,0.066,0.42,10).rotateX(Math.PI/2));
+G.shin=sg(new THREE.CylinderGeometry(0.06,0.05,0.44,10));
+G.shoe=sg(new THREE.BoxGeometry(0.095,0.07,0.22));
+G.torso=sg(new THREE.CylinderGeometry(0.19,0.165,0.52,16));
+G.shoulder=sg(new THREE.SphereGeometry(0.2,18,12));
+G.neck=sg(new THREE.CylinderGeometry(0.048,0.055,0.11,10));
+G.head=sg(new THREE.SphereGeometry(0.105,24,18));
+G.hairCap=sg(new THREE.SphereGeometry(0.114,22,12,0,Math.PI*2,0,Math.PI*0.52));
+G.hairBack=sg(new THREE.BoxGeometry(0.2,0.25,0.07));
+G.bun=sg(new THREE.SphereGeometry(0.048,12,10));
+G.ear=sg(new THREE.SphereGeometry(0.022,8,6));
+G.eye=sg(new THREE.SphereGeometry(0.0145,10,8));
+G.brow=sg(new THREE.BoxGeometry(0.038,0.008,0.008));
+G.nose=sg(new THREE.ConeGeometry(0.014,0.036,8).rotateX(Math.PI/2));
+G.mouth=sg(new THREE.BoxGeometry(0.042,0.009,0.006));
+G.rim=sg(new THREE.TorusGeometry(0.021,0.0028,6,16));
+G.bridge=sg(new THREE.BoxGeometry(0.026,0.004,0.004));
+G.upperArm=sg(new THREE.CylinderGeometry(0.052,0.046,0.3,10));
+G.foreArm=sg(new THREE.CylinderGeometry(0.046,0.038,0.29,10));
+G.hand=sg(new THREE.SphereGeometry(0.044,10,8));
+G.shirt=sg(new THREE.BoxGeometry(0.11,0.2,0.012));
+G.tie=sg(new THREE.BoxGeometry(0.034,0.19,0.014));
+G.bow=sg(new THREE.BoxGeometry(0.075,0.03,0.016));
+G.phone=sg(new THREE.BoxGeometry(0.072,0.14,0.01));
+G.screen=sg(new THREE.PlaneGeometry(0.064,0.128));
+
+const matCache = new Map();
+function mat(color, o={}){ if(o.map) return new THREE.MeshStandardMaterial(Object.assign({color,roughness:.82,metalness:0},o)); const k=color+JSON.stringify(o); if(!matCache.has(k)) matCache.set(k,new THREE.MeshStandardMaterial(Object.assign({color,roughness:.82,metalness:0},o))); return matCache.get(k); }
+const basic = (color)=>{ const k="b"+color; if(!matCache.has(k)) matCache.set(k,new THREE.MeshBasicMaterial({color})); return matCache.get(k); };
+function M(g,m,x=0,y=0,z=0,parent=roomGroup){ const o=new THREE.Mesh(g,m); o.position.set(x,y,z); if(SHADOWS){o.castShadow=true;o.receiveShadow=true;} if(parent) parent.add(o); return o; }
+function box(w,h,d,m,x,y,z,parent=roomGroup){ return M(new THREE.BoxGeometry(w,h,d),m,x,y,z,parent); }
+
+/* procedural textures */
+function canvasTex(size, draw, rep=[1,1]){ const c=document.createElement("canvas"); c.width=c.height=size; const g=c.getContext("2d"); draw(g,size); const t=new THREE.CanvasTexture(c); t.encoding=THREE.sRGBEncoding; t.wrapS=t.wrapT=THREE.RepeatWrapping; t.repeat.set(rep[0],rep[1]); t.anisotropy=4; return t; }
+function noise(g,s,n,alpha,light){ for(let i=0;i<n;i++){ g.fillStyle=(Math.random()<.5? (light||"rgba(255,255,255,") : "rgba(0,0,0,")+(Math.random()*alpha)+")"; g.fillRect(Math.random()*s,Math.random()*s,1+Math.random()*2,1+Math.random()*2);} }
+const tex = {
+  wood:(base,rep)=>canvasTex(512,(g,s)=>{ for(let y=0;y<s;y+=32){ const l=Math.random()*18-9; g.fillStyle=shade(base,l); g.fillRect(0,y,s,32); const off=Math.random()*s; g.fillStyle="rgba(0,0,0,.25)"; g.fillRect(off,y,2,32); g.fillRect(0,y,s,1.5);
+      for(let k=0;k<6;k++){ g.strokeStyle=`rgba(0,0,0,${.04+Math.random()*.06})`; g.beginPath(); const yy=y+4+Math.random()*24; g.moveTo(0,yy); for(let x=0;x<=s;x+=32) g.lineTo(x,yy+Math.sin(x*.02+k)*2); g.stroke(); } } noise(g,s,4000,.05); },rep),
+  carpet:(base,rep)=>canvasTex(256,(g,s)=>{ g.fillStyle=base; g.fillRect(0,0,s,s); noise(g,s,9000,.12); },rep),
+  tile:(a,b,rep)=>canvasTex(256,(g,s)=>{ for(let y=0;y<4;y++)for(let x=0;x<4;x++){ g.fillStyle=(x+y)%2?a:b; g.fillRect(x*64,y*64,64,64);} g.strokeStyle="rgba(0,0,0,.15)"; for(let i=0;i<=4;i++){g.beginPath();g.moveTo(i*64,0);g.lineTo(i*64,s);g.moveTo(0,i*64);g.lineTo(s,i*64);g.stroke();} noise(g,s,3000,.06); },rep),
+  plaster:(base,rep)=>canvasTex(256,(g,s)=>{ g.fillStyle=base; g.fillRect(0,0,s,s); noise(g,s,5000,.035); },rep),
+  panels:(base,rep)=>canvasTex(512,(g,s)=>{ g.fillStyle=base; g.fillRect(0,0,s,s); for(let x=0;x<s;x+=128){ g.fillStyle="rgba(0,0,0,.28)"; g.fillRect(x,0,3,s); g.fillStyle="rgba(255,255,255,.05)"; g.fillRect(x+3,0,2,s);} for(let k=0;k<40;k++){ g.strokeStyle="rgba(0,0,0,.06)"; g.beginPath(); const x=Math.random()*s; g.moveTo(x,0); g.lineTo(x+Math.random()*10-5,s); g.stroke(); } noise(g,s,3000,.04); },rep),
+};
+function shade(hex,l){ const c=new THREE.Color(hex); const hsl={}; c.getHSL(hsl); c.setHSL(hsl.h,hsl.s,clamp(hsl.l+l/100)); return "#"+c.getHexString(); }
+
+/* ---------------- chairs ---------------- */
+function chair(style, parent){
+  const g=new THREE.Group(); parent.add(g);
+  if(style==="office"){ const m=mat("#1d1f24",{roughness:.6}); M(new THREE.BoxGeometry(.5,.08,.48),m,0,.45,0,g); M(new THREE.BoxGeometry(.48,.6,.06),m,0,.85,-.24,g); M(new THREE.CylinderGeometry(.03,.03,.4,8),mat("#555a63",{metalness:.7,roughness:.3}),0,.22,0,g); M(new THREE.CylinderGeometry(.28,.28,.03,5),mat("#2a2d33"),0,.03,0,g); }
+  else if(style==="school"){ const m=mat("#2f5d8a",{roughness:.5}); const leg=mat("#8a8f97",{metalness:.6,roughness:.4}); M(new THREE.BoxGeometry(.44,.04,.42),m,0,.45,0,g); M(new THREE.BoxGeometry(.42,.3,.03),m,0,.72,-.21,g); for(const [x,z] of [[-.19,-.18],[.19,-.18],[-.19,.18],[.19,.18]]) M(new THREE.CylinderGeometry(.012,.012,.45,6),leg,x,.22,z,g); }
+  else if(style==="theater"){ const m=mat("#7a1622",{roughness:.95}); const w=mat("#3a2418",{roughness:.7}); M(new THREE.BoxGeometry(.5,.1,.46),m,0,.44,0,g); M(new THREE.BoxGeometry(.52,.72,.1),m,0,.82,-.25,g); M(new THREE.BoxGeometry(.06,.62,.5),w,-.29,.32,-.02,g); M(new THREE.BoxGeometry(.06,.62,.5),w,.29,.32,-.02,g); }
+  else if(style==="banquet"){ const m=mat("#efe7da",{roughness:.95}); M(new THREE.BoxGeometry(.44,.08,.44),m,0,.45,0,g); M(new THREE.BoxGeometry(.42,.6,.05),m,0,.8,-.21,g); const sash=mat("#b08a4a",{roughness:.6}); M(new THREE.BoxGeometry(.43,.08,.06),sash,0,.78,-.2,g); }
+  return g;
+}
+
+/* =========================================================================
+   PEOPLE
+   ========================================================================= */
+const SKIN = ["#f5d6c1","#ecc4a6","#e0b08a","#cf9a72","#b97f58","#a06a45","#865535","#6e4128","#563120","#3f2418"];
+const HAIR_Y = ["#1a1411","#2b1d14","#3d2817","#5a3b22","#8c6239","#b8915a","#d9c08a","#6b2e17"];
+const HAIR_O = ["#8d8a85","#a9a6a0","#c9c6c0","#e2e0dc","#4a3a2c"];
+const NAMES = ["Amara","Ben","Chen","Diego","Elif","Farah","Gabe","Hana","Ivan","Jae","Kofi","Lena","Malik","Nora","Omar","Priya","Quinn","Rosa","Sami","Tara","Uma","Victor","Wen","Ximena","Yusuf","Zoe","Aiko","Bruno","Carmen","Dev","Esther","Felix","Grace","Hugo","Imani","Jonah","Kira","Luis","Maya","Nikhil","Olga","Pablo","Rhea","Sean","Thandi","Ulla","Vera","Wade","Yara","Zain","Ines","Teo","Mei","Arjun","Leah","Kwame","Sofia","Ravi","Noa","Oscar"];
+const ROLES = {
+  boardroom:["CEO","CFO","CTO","COO","VP Product","Head of Sales","General Counsel","Board member","Investor","VP Marketing","Chief of Staff","Head of People","VP Finance","Advisor"],
+  classroom:["Student"], lecture:["Researcher","Grad student","Attendee","Professor","Engineer"],
+  keynote:["Attendee","Founder","Designer","Engineer","Journalist","Investor","Student"],
+  banquet:["Guest","Cousin","College friend","Coworker","Family friend","Neighbor"],
+};
+const AGES = {students:[18,25], young:[23,38], mixed:[19,76], senior:[38,68]};
+const OUTFIT = {
+  casual:{tops:["#3d6fb6","#c0392b","#2e8b57","#e0b03a","#7d5ba6","#e67e5a","#4a4a4a","#d8d2c4","#1f4e5f","#9cc5a1","#f2efe8","#26303f"], pants:["#2f4a6d","#3a3a3a","#6b5b4b","#24344d"], shirt:0, tie:0},
+  smart:{tops:["#8fb3d9","#f2f2ee","#c9b79c","#5b6f8a","#7a8a6a","#b5838d","#e8e2d0","#2d3a4a","#4a4038","#36454f"], pants:["#3a3f47","#2b3444","#8b7d65","#55565a"], shirt:.4, tie:.1},
+  formal:{tops:["#1c2333","#22262c","#2b2f36","#3a3f47","#1a1f2b","#2e2a2a"], pants:["#1c2333","#22262c","#2b2f36"], shirt:.9, tie:.6},
+  blacktie:{tops:["#0e0f12","#121318","#0e0f12","#5c1a33","#1e3d33","#14213d","#3c2a4d","#7a5a1a"], pants:["#0e0f12","#121318"], shirt:.7, tie:0, bow:.6},
+};
+const TIES = ["#7a1f2b","#1f3f7a","#2f5f3f","#5a2f6a","#b08a2a","#8a8f97"];
+
+function makeSpec(i, seat, featured){
+  const [a0,a1]=AGES[cfg.age]; const age=Math.round(R(a0,a1));
+  const o=OUTFIT[cfg.dress];
+  const old=age>52 && rnd()<(age-45)/30;
+  const top=pick(o.tops);
+  const temper=cfg.temper/100, expert=cfg.expert/100, phones=cfg.phones/100;
+  const spec = {
+    name:NAMES[(i*7+cfg.seed*3)%NAMES.length], age, role:pick(ROLES[cfg.room]),
+    skin:pick(SKIN), hair:old?pick(HAIR_O):pick(HAIR_Y),
+    hairStyle: old&&rnd()<.35 ? "bald" : pick(["short","short","long","long","bun","curly"]),
+    top, pants:pick(o.pants), shirt:rnd()<o.shirt, tie:rnd()<o.tie ? pick(TIES):null, bow:o.bow && rnd()<o.bow,
+    glasses:rnd()<(age>45?.45:.18),
+    scale:{h:R(.92,1.07), w:R(.92,1.1)},
+    // personality
+    warmth: clamp(R(.25,.85) - (temper-.5)*.6),
+    patience: clamp(R(.3,.95) - (temper-.5)*.35),
+    interest: clamp(R(.35,.9) - (temper-.5)*.3),
+    expertise: clamp(expert + R(-.25,.25)),
+    phoneProne: clamp(phones*R(.4,1.5) + (age<30?.15:0) - (age>60?.15:0)),
+    seat, skeptic:false,
+  };
+  if(featured){ Object.assign(spec,{skeptic:true, warmth:.12, patience:.3, interest:.45, expertise:clamp(expert+.35), phoneProne:.1, role:cfg.room==="boardroom"?"CFO":spec.role, name:"Walt"}); }
+  return spec;
+}
+
+function buildPerson(spec, lod){
+  const root=new THREE.Group();
+  root.scale.set(spec.scale.w, spec.scale.h, spec.scale.w);
+  const skin=mat(spec.skin,{roughness:.58}), top=mat(spec.top,{roughness:.88}), pants=mat(spec.pants,{roughness:.9}), hairM=mat(spec.hair,{roughness:.72});
+  const hips=new THREE.Group(); hips.position.y=.47; root.add(hips);
+  M(G.pelvis,pants,0,.04,.02,hips);
+  if(!lod){ for(const s of [-1,1]){ M(G.thigh,pants,s*.09,.04,.2,hips); M(G.shin,pants,s*.09,-.2,.41,hips); M(G.shoe,mat("#151515",{roughness:.5}),s*.09,-.43,.46,hips); } }
+  const torso=new THREE.Group(); torso.position.y=.06; hips.add(torso);
+  M(G.torso,top,0,.28,0,torso);
+  const sh=M(G.shoulder,top,0,.5,0,torso); sh.scale.set(1.15,.42,.68);
+  if(!lod && spec.shirt){ M(G.shirt,mat("#f1efe9",{roughness:.7}),0,.44,.182,torso).rotation.x=-.06; if(spec.tie) M(G.tie,mat(spec.tie,{roughness:.55}),0,.42,.19,torso); if(spec.bow) M(G.bow,mat("#0b0b0d"),0,.53,.185,torso); }
+  M(G.neck,skin,0,.6,0,torso);
+  const head=new THREE.Group(); head.position.y=.63; torso.add(head);
+  const hd=M(G.head,skin,0,.11,0,head); hd.scale.set(.92,1.08,.98);
+  if(spec.hairStyle!=="bald"){ const cap=M(G.hairCap,hairM,0,.122,-.006,head); cap.rotation.x=-.28; cap.scale.set(.98,1.06,1.04); if(spec.hairStyle==="curly") cap.scale.set(1.12,1.18,1.12); }
+  else { const ring=M(G.hairCap,hairM,0,.09,-.02,head); ring.rotation.x=-1.25; ring.scale.set(.96,.6,.9); }
+  if(spec.hairStyle==="long") M(G.hairBack,hairM,0,.05,-.065,head);
+  if(spec.hairStyle==="bun") M(G.bun,hairM,0,.2,-.085,head);
+  const face={};
+  if(!lod){
+    for(const s of [-1,1]) M(G.ear,skin,s*.098,.105,-.005,head).scale.set(.6,1,.8);
+    const eyeM=mat("#141010",{roughness:.2});
+    face.eyes=[M(G.eye,eyeM,-.035,.124,.091,head),M(G.eye,eyeM,.035,.124,.091,head)];
+    const bm=mat(shade(spec.hair,-8),{roughness:.8});
+    face.browL=M(G.brow,bm,-.036,.152,.096,head); face.browR=M(G.brow,bm,.036,.152,.096,head);
+    M(G.nose,skin,0,.103,.105,head);
+    face.mouth=M(G.mouth,mat(shade(spec.skin,-22),{roughness:.6}),0,.066,.097,head);
+    if(spec.glasses){ const gm=mat("#1b1b1b",{roughness:.3,metalness:.4}); M(G.rim,gm,-.036,.125,.103,head); M(G.rim,gm,.036,.125,.103,head); M(G.bridge,gm,0,.128,.105,head); }
+  }
+  const arms=[];
+  for(const s of [-1,1]){
+    const pivot=new THREE.Group(); pivot.position.set(s*.215,.47,0); torso.add(pivot);
+    M(G.upperArm,top,0,-.15,0,pivot);
+    const elbow=new THREE.Group(); elbow.position.y=-.3; pivot.add(elbow);
+    M(G.foreArm,top,0,-.14,0,elbow);
+    if(!lod) M(G.hand,skin,0,-.3,0,elbow);
+    arms.push({s,pivot,elbow});
+  }
+  let phone=null;
+  if(!lod){ phone=new THREE.Group(); phone.position.set(0,.22,.34); phone.rotation.x=-.95; torso.add(phone); M(G.phone,mat("#111",{roughness:.3}),0,0,0,phone); const scr=new THREE.Mesh(G.screen,basic("#8fc7ff")); scr.position.z=.006; phone.add(scr); phone.visible=false; phone.scale.setScalar(.001); }
+  return {root,torso,head,arms,phone,face};
+}
+
+/* =========================================================================
+   ROOM BUILDERS  — return {seats:[{x,y,z,ry,chair}], eye:{pos,look}}
+   ========================================================================= */
+function faceAngle(x,z,tx=0,tz=0){ return Math.atan2(tx-x, tz-z); }
+function blendAngle(a,b,t){ let d=b-a; while(d>Math.PI) d-=2*Math.PI; while(d<-Math.PI) d+=2*Math.PI; return a+d*t; }
+
+function lectern(y, z=-.55, wood="#4a2f1f"){
+  const m=mat(wood,{roughness:.55}); const g=new THREE.Group(); g.position.set(.0,y,z); roomGroup.add(g);
+  M(new THREE.BoxGeometry(.75,1.02,.5),m,0,.51,0,g);
+  const top=M(new THREE.BoxGeometry(.82,.05,.58),mat(shade(wood,-6),{roughness:.45}),0,1.06,.02,g); top.rotation.x=.22;
+  const neck=M(new THREE.CylinderGeometry(.006,.006,.38,6),mat("#222",{metalness:.8,roughness:.3}),.22,1.25,.05,g); neck.rotation.x=-.5;
+  M(new THREE.SphereGeometry(.022,10,8),mat("#111",{roughness:.4}),.22,1.42,-.05,g);
+}
+
+const builders = {
+  boardroom(n){
+    const L=Math.max(3.2, Math.ceil((n-1)/2)*.9+1); const z0=-1.1;
+    const W=9, D=L+5.5;
+    const floor=M(new THREE.PlaneGeometry(W,D),mat("#fff",{map:tex.carpet("#46505e",[6,6]),roughness:1}),0,0,-D/2+1.5); floor.rotation.x=-Math.PI/2;
+    const wallM=mat("#fff",{map:tex.plaster("#d9d6cf",[3,1]),roughness:.95});
+    box(W,3.1,.1,mat("#fff",{map:tex.panels("#6b4a33",[3,1]),roughness:.7}),0,1.55,-D+1.5);
+    box(.1,3.1,D,wallM,W/2,1.55,-D/2+1.5);
+    // window wall
+    for(let i=0;i<Math.ceil(D/1.6);i++){ const zz=1.2-i*1.6-.8; M(new THREE.PlaneGeometry(1.45,2.3),basic("#cfe3f2"),-W/2+.02,1.55,zz).rotation.y=Math.PI/2; box(.08,3.1,.12,mat("#2b2e33",{metalness:.5,roughness:.4}),-W/2+.05,1.55,zz-.78); }
+    box(W,.1,D,mat("#ecebe7",{roughness:1}),0,3.1,-D/2+1.5);
+    for(let i=0;i<3;i++) M(new THREE.PlaneGeometry(1.2,.6),basic("#fffaf0"),0,3.04,z0-L*(i+.5)/3).rotation.x=Math.PI/2;
+    // table
+    const tw=mat("#fff",{map:tex.wood("#5a3a26",[1,3]),roughness:.35});
+    box(1.6,.06,L,tw,0,.74,z0-L/2); box(.5,.7,L*.8,mat("#2b2b2e",{roughness:.6}),0,.37,z0-L/2);
+    const seats=[]; const per=n>=5?n-1:n; const left=Math.ceil(per/2);
+    for(let i=0;i<per;i++){ const side=i<left?-1:1; const k=side<0?i:i-left; const x=side*1.08, z=z0-.55-k*.9; seats.push({x,y:0,z,ry:blendAngle(side<0?Math.PI/2:-Math.PI/2, faceAngle(x,z,0,.3),.62),chair:"office"});
+      // props on table
+      if(rnd()<.6){ box(.32,.015,.22,mat(rnd()<.5?"#c8ccd2":"#2a2c30",{metalness:.5,roughness:.35}),x*.62,.775,z); }
+      if(rnd()<.5){ M(new THREE.CylinderGeometry(.03,.025,.12,10),mat("#bcd7e6",{transparent:true,opacity:.45,roughness:.05}),x*.48,.83,z+.25); } }
+    if(n>=5) seats.push({x:0,y:0,z:z0-L-.45,ry:0,chair:"office"});
+    lights.office(); scene.fog=new THREE.Fog("#cfd4da",14,40);
+    return {seats, eye:{pos:[.0,1.64,.55], look:[0,1.0,-4.5]}};
+  },
+  classroom(n){
+    const cols=n<=12?4:n<=24?6:7, rows=Math.ceil(n/cols); const sx=1.25, sz=1.35, z0=-2.6;
+    const W=cols*sx+3.5, D=rows*sz+6;
+    const floor=M(new THREE.PlaneGeometry(W,D),mat("#fff",{map:tex.tile("#c9c4b6","#bdb7a7",[W/2,D/2]),roughness:.6}),0,0,-D/2+2); floor.rotation.x=-Math.PI/2;
+    const wallM=mat("#fff",{map:tex.plaster("#e6e1cf",[3,1]),roughness:.95});
+    const back=-D+2;
+    box(W,3,.1,wallM,0,1.5,back); box(.1,3,D,wallM,-W/2,1.5,-D/2+2);
+    box(.1,3,D,wallM,W/2,1.5,-D/2+2);
+    for(let i=0;i<Math.floor(D/2.2);i++){ M(new THREE.PlaneGeometry(1.5,1.6),basic("#d7ecf7"),W/2-.06,1.7,1-i*2.2).rotation.y=-Math.PI/2; }
+    // cork board + clock
+    box(3.2,1.2,.04,mat("#a5784b",{roughness:1}),-1.2,1.6,back+.06);
+    for(let i=0;i<9;i++) box(R(.25,.42),R(.3,.42),.01,mat(pick(["#f3e37a","#f2f2f2","#9fd3e8","#f6a6a6","#b5e3a6"])),-2.5+i*.32+R(-.05,.05),1.6+R(-.35,.35),back+.09);
+    M(new THREE.CylinderGeometry(.18,.18,.04,24).rotateX(Math.PI/2),mat("#fafafa"),1.8,2.3,back+.07); M(new THREE.TorusGeometry(.18,.015,8,24),mat("#222"),1.8,2.3,back+.09);
+    box(W,.1,D,mat("#f0eee8",{roughness:1}),0,3,-D/2+2);
+    for(let r=0;r<rows;r+=1.5) for(let c=-1;c<=1;c+=2) M(new THREE.PlaneGeometry(1.2,.35),basic("#f4f8ff"),c*1.6,2.95,z0-r*sz).rotation.x=Math.PI/2;
+    const deskM=mat("#fff",{map:tex.wood("#b8925f",[1,1]),roughness:.5}), leg=mat("#7d828a",{metalness:.6,roughness:.4});
+    const seats=[]; let k=0;
+    for(let r=0;r<rows&&k<n;r++) for(let c=0;c<cols&&k<n;c++,k++){ const x=(c-(cols-1)/2)*sx, z=z0-r*sz; seats.push({x,y:0,z,ry:0,chair:"school"});
+      box(.8,.035,.5,deskM,x,.74,z+.5); for(const dx of [-.36,.36]) box(.03,.72,.03,leg,x+dx,.37,z+.5);
+      if(rnd()<.5) box(.2,.01,.28,mat(pick(["#f4f4f0","#e9d48a","#c9e4f2"])),x+R(-.2,.2),.76,z+.5); }
+    lights.fluoro(); scene.fog=new THREE.Fog("#dfe2e0",16,40);
+    return {seats, eye:{pos:[0,1.64,.6], look:[0,1.0,-5]}};
+  },
+  lecture(n){
+    const seats=[]; let r=0; const span=.72; const rise=.4;
+    const platform=.35;
+    box(10,platform,4,mat("#fff",{map:tex.wood("#6a4a32",[3,1]),roughness:.5}),0,platform/2,0);
+    const stepM=mat("#fff",{map:tex.carpet("#5a2a2a",[4,4]),roughness:1});
+    while(seats.length<n){
+      const Rr=4.1+r*1.02, y=r*rise; const per=Math.floor(Rr*2*span/.62);
+      const sh=new THREE.Shape(); sh.absarc(0,0,Rr+.55,Math.PI/2-span-.12,Math.PI/2+span+.12,false); sh.absarc(0,0,Rr-.5,Math.PI/2+span+.12,Math.PI/2-span-.12,true);
+      const eg=new THREE.ExtrudeGeometry(sh,{depth:Math.max(.02,y),bevelEnabled:false,curveSegments:24}); eg.rotateX(-Math.PI/2);
+      const step=new THREE.Mesh(eg,stepM); step.position.set(0,0,0); if(SHADOWS) step.receiveShadow=true; roomGroup.add(step);
+      for(let i=0;i<per && seats.length<n;i++){ const a=-span+(i+.5)*(2*span/per); const x=Rr*Math.sin(a), z=-Rr*Math.cos(a); seats.push({x,y,z,ry:faceAngle(x,z),chair:"theater"}); }
+      r++;
+    }
+    const Rmax=4.1+r*1.02, top=r*rise;
+    const wallM=mat("#fff",{map:tex.panels("#7a5638",[6,1]),roughness:.65});
+    const back=new THREE.Mesh(new THREE.CylinderGeometry(Rmax+1.2,Rmax+1.2,top+4.5,48,1,true,-span-.5+Math.PI,2*span+1),wallM); back.material.side=THREE.BackSide; back.position.y=(top+4.5)/2; roomGroup.add(back);
+    const floor=M(new THREE.PlaneGeometry(40,40),mat("#fff",{map:tex.carpet("#3a2020",[10,10]),roughness:1}),0,-.001,-8); floor.rotation.x=-Math.PI/2;
+    for(let i=0;i<8;i++){ const a=-span+i*(2*span/7); M(new THREE.SphereGeometry(.12,10,8),basic("#fff3d6"),(Rmax*.7)*Math.sin(a),top+3.8,-(Rmax*.7)*Math.cos(a)); }
+    lectern(platform,-.5);
+    lights.hall(Rmax,top); scene.fog=new THREE.Fog("#1a1410",12,Rmax+12);
+    return {seats, eye:{pos:[0,platform+1.64,.7], look:[0,1.7,-8]}};
+  },
+  keynote(n){
+    const stageH=1.0;
+    box(16,stageH,6.5,mat("#16161a",{roughness:.85}),0,stageH/2,.9);
+    const rug=M(new THREE.CircleGeometry(2.3,48),mat("#a4161f",{roughness:1}),0,stageH+.004,.6); rug.rotation.x=-Math.PI/2;
+    for(const x of [-2.6,2.6]){ const w=M(new THREE.BoxGeometry(.6,.3,.45),mat("#0d0d0f",{roughness:.6}),x,stageH+.15,-1.95); w.rotation.x=.4; }
+    const floor=M(new THREE.PlaneGeometry(60,60),mat("#fff",{map:tex.carpet("#1b1c22",[14,14]),roughness:1}),0,0,-20); floor.rotation.x=-Math.PI/2;
+    const seats=[]; let r=0; const span=.82;
+    while(seats.length<n){ const Rr=4.4+r*.95, y=r*.16; const per=Math.floor(Rr*2*span/.58);
+      if(r>0){ const sh=new THREE.Shape(); sh.absarc(0,0,Rr+.48,Math.PI/2-span-.1,Math.PI/2+span+.1,false); sh.absarc(0,0,Rr-.48,Math.PI/2+span+.1,Math.PI/2-span-.1,true); const eg=new THREE.ExtrudeGeometry(sh,{depth:y,bevelEnabled:false,curveSegments:24}); eg.rotateX(-Math.PI/2); roomGroup.add(new THREE.Mesh(eg,mat("#17181d",{roughness:1}))); }
+      for(let i=0;i<per&&seats.length<n;i++){ if(Math.abs(i-per/2)<.6 && r%5===4) continue; const a=-span+(i+.5)*(2*span/per); const x=Rr*Math.sin(a), z=.6-Rr*Math.cos(a); seats.push({x,y,z,ry:faceAngle(x,z,0,.6),chair:"theater"}); }
+      r++; }
+    const Rmax=4.4+r*.95;
+    for(const s of [-1,1]){ const e=M(new THREE.BoxGeometry(.5,.22,.05),basic("#1fd16b"),s*(Rmax*.75),2.8,-(Rmax*.6)); e.rotation.y=-s*.6; }
+    box(60,.1,60,mat("#050507"),0,9,-20);
+    lights.stage(Rmax); scene.fog=new THREE.FogExp2("#050608",.05);
+    return {seats, eye:{pos:[0,stageH+1.66,.85], look:[0,1.35,-8]}};
+  },
+  banquet(n){
+    const tables=Math.ceil(n/8); const cols=Math.min(4,Math.ceil(Math.sqrt(tables*1.4))); const rows=Math.ceil(tables/cols);
+    const sx=3.1, sz=3.0, z0=-3.6;
+    const W=cols*sx+5, D=rows*sz+7;
+    const floor=M(new THREE.PlaneGeometry(W,D),mat("#fff",{map:tex.wood("#7b5233",[W/2.5,D/2.5]),roughness:.45}),0,0,-D/2+2.5); floor.rotation.x=-Math.PI/2;
+    box(4,.3,3,mat("#fff",{map:tex.wood("#4b3020",[2,1]),roughness:.5}),0,.15,.6);
+    // drapes
+    const drape=mat("#e9dccb",{roughness:1}); const back=-D+2.5;
+    for(let x=-W/2;x<W/2;x+=.32) M(new THREE.CylinderGeometry(.17,.17,4.2,8,1,true),drape,x,2.1,back);
+    for(let z=back;z<2;z+=.32){ M(new THREE.CylinderGeometry(.17,.17,4.2,8,1,true),drape,-W/2,2.1,z); M(new THREE.CylinderGeometry(.17,.17,4.2,8,1,true),drape,W/2,2.1,z); }
+    // string lights
+    const bulbs=[]; for(let i=0;i<7;i++){ const z=-1.2-i*(D-3)/7; for(let k=0;k<=30;k++){ const t=k/30; bulbs.push([lerp(-W/2,W/2,t),3.6-Math.sin(t*Math.PI)*.7,z]); } }
+    const im=new THREE.InstancedMesh(new THREE.SphereGeometry(.035,8,6),basic("#ffd58a"),bulbs.length); const o=new THREE.Object3D(); bulbs.forEach((b,i)=>{o.position.set(...b);o.updateMatrix();im.setMatrixAt(i,o.matrix);}); roomGroup.add(im);
+    const cloth=mat("#f4f1ea",{roughness:.95});
+    const seats=[]; let t=0;
+    for(let r=0;r<rows;r++) for(let c=0;c<cols&&t<tables;c++,t++){
+      const tx=(c-(cols-1)/2)*sx + (r%2?.5:0), tz=z0-r*sz;
+      M(new THREE.CylinderGeometry(.92,.98,.76,36),cloth,tx,.38,tz);
+      M(new THREE.CylinderGeometry(.06,.08,.25,12),mat("#d9e6ea",{transparent:true,opacity:.55,roughness:.05}),tx,.88,tz);
+      for(let f=0;f<7;f++) M(new THREE.SphereGeometry(.06,10,8),mat(pick(["#f2b8c6","#fff6ea","#e6a0b8","#c8d9a0"]),{roughness:.9}),tx+R(-.1,.1),1.02+R(-.04,.06),tz+R(-.1,.1));
+      for(let s=0;s<8&&seats.length<n;s++){ const a=s/8*Math.PI*2+.2; const x=tx+Math.sin(a)*1.32, z=tz+Math.cos(a)*1.32; seats.push({x,y:0,z,ry:blendAngle(faceAngle(x,z,tx,tz),faceAngle(x,z,0,.6),.72),chair:"banquet"});
+        M(new THREE.CylinderGeometry(.13,.12,.015,16),mat("#fafafa",{roughness:.4}),tx+Math.sin(a)*.72,.765,tz+Math.cos(a)*.72); }
+    }
+    lights.warm(W,D); scene.fog=new THREE.Fog("#2a1c12",10,30);
+    return {seats, eye:{pos:[0,.3+1.64,.6], look:[0,1.0,-6]}};
+  },
+};
+
+const lights = {
+  add(l){ roomGroup.add(l); if(l.target) roomGroup.add(l.target); return l; },
+  key(color,int,pos,target=[0,0,-4],size=10){ const d=this.add(new THREE.DirectionalLight(color,int)); d.position.set(...pos); d.target.position.set(...target); if(SHADOWS){ d.castShadow=true; d.shadow.mapSize.set(2048,2048); Object.assign(d.shadow.camera,{left:-size,right:size,top:size,bottom:-size,near:.5,far:40}); d.shadow.bias=-.0005; d.shadow.normalBias=.02; } return d; },
+  office(){ this.add(new THREE.HemisphereLight("#eef4ff","#6b625a",.6)); this.key("#fff7ea",1.1,[-6,6,-2]); this.add(new THREE.PointLight("#fff1dc",.5,12)).position.set(0,2.8,-3); },
+  fluoro(){ this.add(new THREE.HemisphereLight("#f4f8ff","#8a8070",.7)); this.key("#ffffff",.85,[5,7,-1]); this.add(new THREE.PointLight("#fffdf6",.4,14)).position.set(0,2.8,-4); },
+  hall(Rm,top){ this.add(new THREE.HemisphereLight("#ffe6c4","#2a1a12",.5)); this.key("#ffe0b8",.9,[0,top+6,2],[0,0,-Rm/2],Rm+4); for(const x of [-4,0,4]){ const s=this.add(new THREE.SpotLight("#ffd9a6",.9,Rm+10,.8,.6)); s.position.set(x,top+4,-Rm*.4); s.target.position.set(x*.6,0,-Rm*.55); } },
+  stage(Rm){ this.add(new THREE.HemisphereLight("#26304a","#050506",.16));
+    for(const x of [-3,3]){ const s=this.add(new THREE.SpotLight("#fff2dc",1.5,22,.32,.5)); s.position.set(x,7,-5); s.target.position.set(0,1,.6); }
+    for(const x of [-6,0,6]){ const s=this.add(new THREE.SpotLight("#7f93c4",.32,Rm+6,.7,.85,1.2)); s.position.set(x,6,0); s.target.position.set(x*.8,0,-7); }
+    const f=this.add(new THREE.PointLight("#ffcf9a",.65,8,1.5)); f.position.set(0,1.8,-2.8); },
+  warm(W,D){ this.add(new THREE.HemisphereLight("#ffd9a8","#3a2414",.55)); this.key("#ffcf94",.7,[2,7,1],[0,0,-D/3],Math.max(W,D)); for(let i=0;i<4;i++) this.add(new THREE.PointLight("#ffb766",.55,9)).position.set(lerp(-W/3,W/3,i/3),3,-D/3); },
+};
+
+/* =========================================================================
+   AUDIENCE
+   ========================================================================= */
+let people=[];
+function disposeRoom(){ roomGroup.traverse(o=>{ if(o.geometry && !o.geometry.userData.shared) o.geometry.dispose(); }); scene.remove(roomGroup); roomGroup=new THREE.Group(); scene.add(roomGroup); }
+function buildRoom(){
+  disposeRoom(); rnd=mulberry32(cfg.seed*977+cfg.size);
+  SHADOWS = cfg.size<=40 && cfg.room!=="keynote";
+  renderer.shadowMap.enabled = SHADOWS;
+  const r=builders[cfg.room](cfg.size);
+  view.base.set(...r.eye.pos); view.look.set(...r.eye.look); view.yaw=view.tYaw=0; view.pitch=view.tPitch=0;
+  // front-row skeptic: seat nearest the speaker, near centre
+  let skepticIdx=-1;
+  if(cfg.skeptic){ let best=1e9; r.seats.forEach((s,i)=>{ const d=Math.hypot(s.x*1.6,s.z-view.base.z); if(d<best){best=d;skepticIdx=i;} }); }
+  people = r.seats.map((seat,i)=>{
+    const spec=makeSpec(i,seat,i===skepticIdx);
+    const dist=Math.hypot(seat.x-view.base.x, seat.z-view.base.z);
+    const lod = dist>13;
+    const body=buildPerson(spec,lod);
+    const holder=new THREE.Group(); holder.position.set(seat.x,seat.y,seat.z); holder.rotation.y=seat.ry; roomGroup.add(holder);
+    chair(seat.chair,holder).position.z=-.03; holder.add(body.root);
+    holder.traverse(o=>{ o.userData.pid=i; });
+    const p = {i,spec,body,holder,dist,lod,
+      e:.55+spec.interest*.2, c:0, v:spec.warmth, state:"idle", stateUntil:0,
+      lean:0, tLean:0, yaw:R(-.4,.4), tYaw:0, roll:0, tRoll:0, pitch:0, tPitch:0, phone:0, tPhone:0,
+      brow:0, tBrow:0, smile:spec.warmth*.5, tSmile:0, nodAmp:0, nodT:0, clap:0, tClap:0, blink:R(1,5), phase:R(0,6.28),
+      nextLook:R(0,3), cross: spec.skeptic ? 1 : 0, };
+    return p;
+  });
+  $("#roomLabel").textContent = `${ROOMS[cfg.room].label} · ${people.length} ${people.length===1?"person":"people"}`;
+  if(S.mode!=="live") idleChatter();
+}
+function idleChatter(){ people.forEach(p=>{ p.state="idle"; p.tPhone = rnd()<p.spec.phoneProne*.6 ? 1 : 0; }); }
+
+/* per-frame pose */
+function animatePeople(dt,t){
+  for(const p of people){
+    const b=p.body, k=1-Math.exp(-dt*4), kf=1-Math.exp(-dt*9);
+    p.lean=lerp(p.lean,p.tLean,k); p.yaw=lerp(p.yaw,p.tYaw,k*.8); p.roll=lerp(p.roll,p.tRoll,k); p.pitch=lerp(p.pitch,p.tPitch,k);
+    p.phone=lerp(p.phone,p.tPhone,k*.7); p.brow=lerp(p.brow,p.tBrow,kf); p.smile=lerp(p.smile,p.tSmile,k); p.clap=lerp(p.clap,p.tClap,kf);
+    p.nodAmp*=Math.exp(-dt*2.2); p.nodT+=dt;
+    const breathe=Math.sin(t*1.6+p.phase)*.012;
+    b.torso.rotation.x = p.lean + breathe + p.phone*.12;
+    const nod = Math.sin(p.nodT*8.5)*p.nodAmp;
+    b.head.rotation.set(p.pitch + nod + p.phone*.55, p.yaw*(1-p.phone*.8), p.roll);
+    // arms: rest / crossed / clap / phone
+    for(const a of b.arms){
+      const s=a.s, cross=p.cross*(1-p.clap)*(1-p.phone);
+      const clapWave = Math.sin(t*15+p.phase)*.14*p.clap;
+      a.pivot.rotation.x = lerp(-.25, -.62, Math.max(cross,p.clap*.9,p.phone));
+      a.pivot.rotation.z = s*.06 - s*(p.clap*.18 + clapWave*s) ;
+      a.elbow.rotation.x = lerp(-1.4, -1.25, p.clap) + p.phone*.15;
+      a.elbow.rotation.z = -s*(.22*(1-cross) + 1.45*cross + .55*p.clap); // positive = inward for the left arm
+    }
+    if(b.phone){ const vis=p.phone>.05; b.phone.visible=vis; if(vis) b.phone.scale.setScalar(p.phone); }
+    const f=b.face;
+    if(f.browL){ f.browL.rotation.z=-p.brow*.45; f.browR.rotation.z=p.brow*.45; const lift=.152+p.brow*.006; f.browL.position.y=f.browR.position.y=lift;
+      f.mouth.scale.set(1+p.smile*.7,1+Math.max(0,p.smile-.6)*1.6,1); f.mouth.position.y=.066+p.smile*.004;
+      p.blink-=dt; const closed=p.blink<0; if(p.blink<-.12) p.blink=R(2,6); f.eyes[0].scale.y=f.eyes[1].scale.y=closed?.15:1; }
+  }
+}
+
+/* =========================================================================
+   SESSION + SIGNALS
+   ========================================================================= */
+const S = {};
+function resetSession(){ Object.assign(S,{mode:"idle", source:null, t0:0, words:[], fillers:{}, fillerCount:0, jargonUsed:{}, rms:0, rmsAvg:.02, level:0, noise:.004,
+  pitchHist:[], lastVoiced:0, runStart:0, longestRun:0, pauses:0, goodPauses:0, longPauses:0, lastEmph:0, emphasisCount:0, timeline:[], moments:[], lastTimeline:0,
+  sig:{wpm:0,variety:null,fillerRate:0,ramble:0,offScript:0,jargon:0,fast:0,slow:0,monotone:0,energy:0,silence:0,clarity:1}, cool:{}, avgE:0, avgC:0, peakE:0, lowState:false, confState:false, lastJargon:null, lastSig:0,
+  wpmSamples:[], varietySamples:[], recentNodders:0}); }
+resetSession();
+
+function addWord(raw, t){
+  const w=norm(raw); if(!w) return;
+  const prev=S.words[S.words.length-1];
+  const e={w,raw,t,filler:false,jargon:false,onScript:null};
+  if(FILLER1.has(w)) e.filler=true;
+  if(w==="like" && (!prev || !LIKE_OK.has(prev.w))) e.filler=true;
+  if(prev && FILLER2.has(prev.w+" "+w)){ e.filler=true; e.key=prev.w+" "+w; }
+  if(prev && prev.w===w && w.length<6 && !FILLER1.has(w)){ e.filler=true; e.key=`repeated "${w}"`; }
+  if(e.filler){ const k=e.key||w; S.fillers[k]=(S.fillers[k]||0)+1; S.fillerCount++; }
+  if(JARGON.has(w)){ e.jargon=true; S.jargonUsed[w]=(S.jargonUsed[w]||0)+1; S.lastJargon={w,t}; reactJargon(w); }
+  if(!e.filler && P.words.length) e.onScript = prompterHear(w);
+  S.words.push(e);
+  S.longestRun=Math.max(S.longestRun,S.words.length-S.runStart);
+  renderTranscript();
+}
+
+function addAudio(t, rms, pitch){
+  S.rms=rms;
+  const db=20*Math.log10(rms+1e-7); S.level=lerp(S.level,clamp((db+52)/38),.35);
+  if(S.source==="mic"){ if(rms<S.noise*1.6) S.noise=S.noise*.97+rms*.03; else S.noise*=1.0004; }
+  const thresh=Math.max(.008,S.noise*3);
+  if(rms>thresh){
+    const gap=t-S.lastVoiced;
+    if(S.lastVoiced>0 && gap>650){ S.pauses++; onPause(gap,t); S.runStart=S.words.length; }
+    S.lastVoiced=t;
+    if(S.rmsAvg>.004 && rms>S.rmsAvg*1.75 && t-S.lastEmph>1400){ S.lastEmph=t; S.emphasisCount++; reactEmphasis(t); }
+    S.rmsAvg=S.rmsAvg*.96+rms*.04;
+    if(pitch>60 && pitch<500) S.pitchHist.push({t,st:12*Math.log2(pitch/100)});
+  }
+}
+function onPause(gap,t){
+  if(gap>4500){ S.longPauses++; feed("info","Long silence. Heads came up to see if you're okay.", "pause"); people.forEach(p=>{ if(rnd()<.4){p.tPitch=-.08; p.tPhone=0;} }); }
+  else if(gap>900 && S.sig.ramble<.2 && S.avgE>.45){ S.goodPauses++; if(cool("goodpause",14000)) feed("good",`Clean ${ (gap/1000).toFixed(1)} s pause. The room leaned in for the next line.`); people.forEach(p=>{ if(p.e>.5) p.tLean=Math.min(.16,p.tLean+.05); }); }
+}
+
+function computeSignals(t){
+  const el=t-S.t0, win=Math.min(20000,Math.max(el,5000));
+  const recent=S.words.filter(w=>w.t>t-win && !w.filler);
+  const sig=S.sig;
+  sig.wpm = recent.length*60000/win;
+  S.pitchHist = S.pitchHist.filter(p=>p.t>t-7000);
+  if(S.pitchHist.length>12){ const a=S.pitchHist.map(p=>p.st).sort((x,y)=>x-y); sig.variety = a[Math.floor(a.length*.9)]-a[Math.floor(a.length*.1)]; } else sig.variety=null;
+  const last=S.words.slice(-40); sig.fillerRate = last.length? last.filter(w=>w.filler).length/Math.max(12,last.length) : 0;
+  const run=S.words.length-S.runStart; sig.ramble = clamp((run-34)/36);
+  const scripted=S.words.filter(w=>w.onScript!==null).slice(-14); sig.offScript = scripted.length>=6 ? scripted.filter(w=>!w.onScript).length/scripted.length : 0;
+  sig.jargon = S.words.filter(w=>w.jargon && w.t>t-9000).length/3;
+  sig.silence = t-S.lastVoiced;
+  const speaking = sig.silence<2500 && el>4000;
+  sig.fast = speaking ? clamp((sig.wpm-172)/38) : 0;
+  sig.slow = speaking ? clamp((105-sig.wpm)/45) : 0;
+  sig.monotone = sig.variety===null ? 0 : clamp((3.2-sig.variety)/2.2);
+  sig.energy = S.level;
+  sig.clarity = clamp(1 - (.9*sig.fillerRate*2 + .35*sig.ramble + .25*Math.min(1,sig.jargon) + .2*sig.fast + .25*sig.offScript)/1.2);
+  if(speaking){ S.wpmSamples.push(sig.wpm); if(sig.variety!==null) S.varietySamples.push(sig.variety); }
+  return sig;
+}
+
+/* ---------------- audience brain ---------------- */
+function cool(key,ms){ const t=now(); if(S.cool[key] && t-S.cool[key]<ms) return false; S.cool[key]=t; return true; }
+
+function updateAudience(t){
+  const live=S.mode==="live"; const sig=S.sig; const mins=(t-S.t0)/60000;
+  let sumE=0,sumC=0, phones=0, confused=0, engaged=0;
+  for(const p of people){
+    const sp=p.spec;
+    let tE, tC;
+    if(live){
+      const imp=1.15-sp.patience;
+      tE = .48 + sp.interest*.32 + (sp.warmth-.5)*.15
+        + (sig.variety===null?0:clamp((sig.variety-3)/5,-.3,.3))*.6
+        + (sig.energy-.5)*.25
+        - sig.monotone*.22*imp - sig.slow*.25 - sig.ramble*.45*imp - sig.fillerRate*1.4*imp - sig.offScript*.15
+        - mins*.05*(1-sp.patience) - (sig.silence>6000 ? .15 : 0) + (rnd()-.5)*.06;
+      tC = Math.min(1,sig.jargon)*(1-sp.expertise)*1.1 + sig.fast*.85*(1.1-sp.expertise*.5) + sig.ramble*.55 + sig.offScript*.3 + (sp.skeptic?.08:0);
+      if(sp.expertise>.7 && sig.slow>0) tE -= .15;
+    } else { tE=.5+sp.interest*.2; tC=0; }
+    p.e = lerp(p.e, clamp(tE), .07 + (1-sp.patience)*.05);
+    p.c = lerp(p.c, clamp(tC), tC>p.c ? .25 : .06);
+    p.v = p.e - p.c*.4 + (sp.warmth-.5)*.3;
+    sumE+=p.e; sumC+=p.c;
+    if(t>p.stateUntil) chooseBehavior(p,t,live);
+    if(p.state==="phone") phones++; if(p.state==="confused") confused++; if(p.state==="engaged") engaged++;
+  }
+  const n=people.length||1; S.avgE=sumE/n; S.avgC=sumC/n; S.counts={phones,confused,engaged};
+  if(live) narrate(t);
+}
+
+function chooseBehavior(p,t,live){
+  const sp=p.spec; const prev=p.state; let st;
+  if(!live){ st="idle"; }
+  else if(p.c>.42) st="confused";
+  else if(p.e<.27) st = rnd()<sp.phoneProne*1.3 ? "phone" : "checked-out";
+  else if(p.e<.42) st = rnd()<sp.phoneProne*.5 ? "phone" : "drifting";
+  else if(p.e>.7) st="engaged";
+  else st="listening";
+  p.state=st; p.stateUntil=t+R(900,2600);
+  p.tRoll=0; p.tBrow=0; p.tPhone=0; p.tPitch=0;
+  switch(st){
+    case "idle": p.tYaw=rnd()<.5?R(-.7,.7):0; p.tLean=R(-.1,.04); p.tPhone=rnd()<sp.phoneProne*.6?1:0; p.tSmile=sp.warmth*.6; if(rnd()<.2) p.nodAmp=.08; break;
+    case "engaged": p.tYaw=R(-.06,.06); p.tLean=R(.08,.17); p.tSmile=clamp(p.v)*.9; p.tPitch=-.03; if(rnd()<.3) p.nodAmp=Math.max(p.nodAmp,.12); break;
+    case "listening": p.tYaw=R(-.12,.12); p.tLean=R(-.02,.07); p.tSmile=clamp(p.v)*.5; break;
+    case "drifting": p.tYaw=pick([-1,1])*R(.35,.75); p.tLean=R(-.14,-.05); p.tSmile=.1; p.tPitch=R(-.05,.08); break;
+    case "checked-out": p.tYaw=pick([-1,1])*R(.2,.5); p.tLean=-.16; p.tPitch=.22; p.tSmile=0; break;
+    case "phone": p.tPhone=1; p.tLean=-.04; p.tYaw=0; p.tSmile=0; break;
+    case "confused": p.tRoll=pick([-1,1])*R(.14,.22); p.tBrow=1; p.tLean=R(.02,.1); p.tSmile=0; p.tYaw=rnd()<.3?pick([-1,1])*.45:0; break; // some glance at a neighbour
+  }
+  if(sp.skeptic && st!=="engaged"){ p.tSmile=0; p.tLean=-.08; }
+  p.cross = sp.skeptic && st!=="engaged" ? 1 : (st==="checked-out" && rnd()<.3 ? 1 : 0);
+}
+
+function reactEmphasis(t){
+  let n=0;
+  for(const p of people){ if((p.state==="engaged"||p.state==="listening") && rnd()<p.e){ n++; setTimeout(()=>{ p.nodAmp=Math.max(p.nodAmp,R(.1,.19)); p.nodT=0; }, R(150,750)); } }
+  S.recentNodders=n;
+  if(n>=Math.max(3,people.length*.25) && cool("nods",9000)) feed("good",`Your emphasis landed. ${n} ${n===1?"person":"people"} nodded along.`, "emphasis");
+}
+function reactJargon(w){
+  setTimeout(()=>{ const c=people.filter(p=>p.spec.expertise<.55); c.forEach(p=>{ if(rnd()<.6){ p.c=Math.min(1,p.c+.35); p.stateUntil=0; } });
+    if(c.length && cool("jargon"+w,20000) && cool("jargonAny",7000)) { const k=Math.max(1,Math.round(c.length*.6)); feed("puzzle",`“${w}” lost about ${k} of them. Jargon reads as noise to a ${cfg.expert<50?"non-expert":"mixed"} crowd.`, "jargon", w); }
+  }, R(500,900));
+}
+
+function narrate(t){
+  const sig=S.sig, n=people.length, c=S.counts;
+  if(sig.ramble>.45 && cool("ramble",15000)) feed("warn",`${S.words.length-S.runStart} words without a real pause. The back rows are drifting.`, "ramble");
+  if(sig.fast>.35 && cool("fast",15000)) feed("warn",`${Math.round(sig.wpm)} wpm. The front row is working hard to keep up.`, "fast");
+  if(sig.slow>.5 && cool("slow",20000)) feed("warn",`Pace dropped to ${Math.round(sig.wpm)} wpm. Energy in the room is sagging.`);
+  if(sig.monotone>.7 && sig.silence<1500 && cool("mono",18000)) feed("warn",`Flat delivery: under ${(sig.variety||0).toFixed(1)} semitones of pitch range. Vary it on key words.`, "mono");
+  if(sig.fillerRate>.12 && cool("filler",14000)){ const top=Object.entries(S.fillers).sort((a,b)=>b[1]-a[1])[0]; feed("warn",`Fillers are stacking up: ${S.fillerCount} so far, mostly “${top?top[0]:"um"}”.`, "filler"); }
+  if(sig.offScript>.6 && cool("off",20000)) feed("info","You've left the script. The teleprompter is holding your place.", "off");
+  if(c.phones>=Math.max(3,n*.12) && cool("phones",16000)) feed("bad",`${c.phones} ${c.phones===1?"phone is":"phones are"} out.`, "phones");
+  if(c.confused>=Math.max(2,n*.18) && cool("confused",12000)) feed("puzzle",`${c.confused} people look puzzled.`, "confused");
+  if(S.avgE>.72 && cool("great",25000)) feed("good",`The room is with you. ${c.engaged} leaning in.`, "peak");
+  // moments for the report
+  const el=(t-S.t0)/1000, snippet=S.words.slice(-12).map(w=>w.raw).join(" ");
+  if(!S.lowState && S.avgE<.42){ S.lowState=true; S.moments.push({t:el,kind:"drop",text:`Engagement fell to ${Math.round(S.avgE*100)}%`,snippet,cause:causeOf(sig)}); }
+  if(S.lowState && S.avgE>.52) S.lowState=false;
+  if(!S.confState && S.avgC>.3){ S.confState=true; S.moments.push({t:el,kind:"confused",text:`Confusion rose to ${Math.round(S.avgC*100)}%`,snippet,cause:causeOf(sig)}); }
+  if(S.confState && S.avgC<.15) S.confState=false;
+  if(S.avgE>S.peakE+.03 && S.avgE>.66 && el>8){ S.peakE=S.avgE; S.moments=S.moments.filter(m=>m.kind!=="peak"); S.moments.push({t:el,kind:"peak",text:`Peak engagement, ${Math.round(S.avgE*100)}%`,snippet,cause:"Strong, varied delivery"}); }
+}
+function causeOf(sig){ const c=[]; if(sig.ramble>.3) c.push("long unbroken run"); if(sig.fast>.2) c.push(`${Math.round(sig.wpm)} wpm`); if(sig.jargon>.3 && S.lastJargon) c.push(`jargon (“${S.lastJargon.w}”)`); if(sig.fillerRate>.1) c.push("fillers"); if(sig.monotone>.6) c.push("flat pitch"); if(sig.offScript>.5) c.push("off script"); return c.join(", ")||"gradual fatigue"; }
+
+/* =========================================================================
+   INPUT SOURCES
+   ========================================================================= */
+let audio=null, recog=null, demo=null;
+async function startMic(){
+  if(!navigator.mediaDevices?.getUserMedia){ showMsg("This browser can't reach a microphone. Try Run demo, or open the page in desktop Chrome."); return; }
+  let stream;
+  try{ stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:false}}); }
+  catch(e){ showMsg("Microphone access was blocked here. Run demo shows the same live analysis with a recorded performance, or open podium/index.html locally in Chrome to use your voice."); return; }
+  const ac=new (window.AudioContext||window.webkitAudioContext)(); const src=ac.createMediaStreamSource(stream); const an=ac.createAnalyser(); an.fftSize=2048; src.connect(an);
+  audio={ac,an,stream,buf:new Float32Array(an.fftSize)};
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(SR){ recog=new SR(); recog.continuous=true; recog.interimResults=true; recog.lang="en-US"; const emitted={};
+    recog.onresult=ev=>{ for(let i=ev.resultIndex;i<ev.results.length;i++){ const words=ev.results[i][0].transcript.trim().split(/\s+/).filter(Boolean); const k=(recog._gen||0)+":"+i; const prev=emitted[k]||0; for(let j=prev;j<words.length;j++) addWord(words[j],now()); emitted[k]=Math.max(prev,words.length);} };
+    recog.onend=()=>{ if(S.mode==="live" && S.source==="mic"){ recog._gen=(recog._gen||0)+1; try{recog.start();}catch(e){} } };
+    recog.onerror=e=>{ if(e.error==="not-allowed"||e.error==="service-not-allowed") showMsg("Speech-to-text isn't available here, so only voice tone, volume and pauses are analysed."); };
+    try{ recog.start(); }catch(e){}
+  } else showMsg("This browser has no built-in speech-to-text (Chrome and Edge do). Tone, volume and pauses still drive the audience.");
+  begin("mic");
+}
+function pitchOf(b,sr){ const minL=Math.floor(sr/420), maxL=Math.floor(sr/70), n=b.length-maxL; let e=0; for(let i=0;i<n;i++) e+=b[i]*b[i]; if(e<1e-4) return -1; let best=-1,bc=0;
+  for(let L=minL;L<=maxL;L++){ let c=0; for(let i=0;i<n;i++) c+=b[i]*b[i+L]; c/=e; if(c>bc){bc=c;best=L;} } return bc>.55? sr/best : -1; }
+function pollMic(t){ if(!audio) return; audio.an.getFloatTimeDomainData(audio.buf); let s=0; for(const v of audio.buf) s+=v*v; const rms=Math.sqrt(s/audio.buf.length); const pitch = rms>Math.max(.008,S.noise*3) ? pitchOf(audio.buf,audio.ac.sampleRate) : -1; addAudio(t,rms,pitch); }
+
+function buildDemo(){
+  const paras=SAMPLE.split(/\n\s*\n/); const toks=[]; let t=1200;
+  for(const seg of DEMO){
+    const text=seg.ramble?seg.text:paras[seg.p]; const words=text.split(/\s+/); const iv=60000/seg.wpm;
+    words.forEach((raw,wi)=>{ const clean=raw.replace(/[.,:;!?]/g,""); const emph=(seg.emph||[]).includes(clean);
+      toks.push({raw:clean,t,dur:iv*.82,seg,emph,wi}); t+=iv*(.85+Math.random()*.3);
+      if(/[.!?]$/.test(raw)) t+=seg.pause; else if(/[,:;]$/.test(raw)) t+=seg.pause*.35; });
+    t+=seg.pause*.6;
+  }
+  return {toks, i:0, end:t+800, t0:now()};
+}
+function demoVoice(tok,el){ const s=tok.seg; return [(.025+s.energy*.06)*(tok.emph?2.1:1)*(.85+Math.random()*.3), 155*Math.pow(2,(s.variety*5.5*Math.sin(el/430+tok.wi*.7)+(tok.emph?4:0)+(Math.random()-.5)*.6)/12)]; }
+function pollDemo(t){
+  const el=t-demo.t0;
+  // each word is stamped with its scheduled time, so pauses and pace stay accurate even if frames drop
+  while(demo.i<demo.toks.length && demo.toks[demo.i].t<=el){ const tk=demo.toks[demo.i], at=demo.t0+tk.t; addAudio(at,...demoVoice(tk,tk.t)); addWord(tk.raw,at); demo.i++; }
+  const cur=demo.toks[Math.max(0,demo.i-1)];
+  if(cur && el<cur.t+cur.dur) addAudio(t,...demoVoice(cur,el)); else addAudio(t,.0015+Math.random()*.001,-1);
+  if(el>demo.end) endSession();
+}
+
+/* =========================================================================
+   SESSION FLOW
+   ========================================================================= */
+let savedScript=null;
+function begin(source){
+  resetSession(); S.mode="live"; S.source=source; S.t0=now(); S.lastVoiced=0;
+  prompterReset();
+  people.forEach(p=>{ p.stateUntil=now()+R(200,1500); p.tYaw=0; p.tPhone=0; p.state="listening"; p.e=.55+p.spec.interest*.25; });
+  $("#feedList").innerHTML=""; $("#transcript").innerHTML="";
+  feed("info", source==="demo" ? "Demo running the sample speech, including a deliberate ramble and a rushed paragraph." : "The room goes quiet. You have the floor.");
+  $("#statePill").textContent=source==="demo"?"LIVE · DEMO":"LIVE"; $("#statePill").classList.add("live");
+  $("#btnMic").hidden=true; $("#btnDemo").hidden=true; $("#btnEnd").hidden=false;
+  setStatus(source==="demo" ? "Watch the meters and the room react. End any time." : "Speak naturally. The teleprompter follows your voice.");
+  wake(true);
+}
+function endSession(){
+  if(S.mode!=="live") return;
+  S.mode="ended"; S.tEnd=now();
+  if(audio){ audio.stream.getTracks().forEach(t=>t.stop()); audio.ac.close(); audio=null; }
+  if(recog){ try{recog.onend=null; recog.stop();}catch(e){} recog=null; }
+  demo=null;
+  // applause scaled by how it went
+  people.forEach(p=>{ p.tPhone=0; p.cross=0; p.tYaw=0; p.tRoll=0; p.tBrow=0; const clap=rnd()<clamp(p.e+.25); p.tClap=clap?1:0; p.tSmile=clap?clamp(p.v+.2):0; p.state="applause"; p.stateUntil=now()+1e9; });
+  setTimeout(()=>people.forEach(p=>{p.tClap=0; p.stateUntil=0;}), 3200);
+  $("#statePill").textContent="APPLAUSE"; $("#statePill").classList.remove("live");
+  $("#btnEnd").hidden=true;
+  setTimeout(showReport, 1800);
+  wake(false);
+}
+
+/* =========================================================================
+   TELEPROMPTER
+   ========================================================================= */
+const P = {words:[], normw:[], spans:[], ptr:0, mode:"follow", size:26, scroll:0, autoT:0};
+function prompterLoad(text){
+  P.words=text.split(/\s+/).filter(Boolean); P.normw=P.words.map(norm); P.ptr=0;
+  const inner=$("#pinner"); inner.innerHTML=""; P.spans=P.words.map((w,i)=>{ const s=document.createElement("span"); s.textContent=w+" "; inner.appendChild(s); return s; });
+  prompterPaint(true);
+}
+function prompterReset(){ P.ptr=0; P.autoT=now(); P.spans.forEach(s=>s.className=""); prompterPaint(true); }
+const STOP=new Set(["the","a","an","and","or","to","of","in","on","is","it","its","that","we","i","you","for","at","be","this","so","but","as","with","by","are","was","there","have","has","our","my","your","what","which","than","from","they","them","their","not","one","here","all","do","if","me","us"]);
+function prompterHear(w){
+  if(P.mode!=="follow") return null;
+  const N=P.normw.length, win=STOP.has(w)?2:8;
+  for(let j=P.ptr;j<Math.min(N,P.ptr+win);j++){ if(P.normw[j]===w || (w.length>4 && P.normw[j].slice(0,5)===w.slice(0,5))){ prompterSet(j+1); return true; } }
+  // recover if the speaker skipped ahead: match last three heard words further on
+  const heard=S.words.slice(-2).map(x=>x.w).concat(w);
+  if(heard.length===3 && !heard.every(x=>STOP.has(x))) for(let j=Math.max(0,P.ptr-40);j<Math.min(N-2,P.ptr+80);j++){ if(P.normw[j]===heard[0]&&P.normw[j+1]===heard[1]&&P.normw[j+2]===heard[2]){ prompterSet(j+3); return true; } }
+  return false;
+}
+function prompterSet(k){ const from=Math.min(P.ptr,k), to=Math.max(P.ptr,k); P.ptr=k; for(let i=Math.max(0,from-1);i<Math.min(P.spans.length,to+1);i++) P.spans[i].className = i<k ? "said" : i===k ? "now":""; prompterPaint(); }
+function prompterPaint(jump){ const s=P.spans[Math.min(P.ptr,P.spans.length-1)]; if(!s) return; if(P.spans[P.ptr]) P.spans[P.ptr].className="now"; P.target=s.offsetTop - P.size*1.4; if(jump){ P.scroll=P.target; $("#ptext").scrollTop=P.scroll; } }
+function prompterTick(dt){
+  if(S.mode==="live" && P.mode==="auto"){ const k=Math.floor((now()-P.autoT)/ (60000/140)); if(k>P.ptr && k<=P.words.length) prompterSet(k); }
+  if(P.target==null) return; P.scroll=lerp(P.scroll,P.target,1-Math.exp(-dt*6)); $("#ptext").scrollTop=P.scroll;
+}
+
+/* =========================================================================
+   UI
+   ========================================================================= */
+function fmtT(sec){ sec=Math.max(0,Math.round(sec)); return Math.floor(sec/60)+":"+String(sec%60).padStart(2,"0"); }
+function feed(kind,text){ const li=document.createElement("li"); li.className=kind; const el=S.mode==="live"?(now()-S.t0)/1000:0; li.innerHTML=`<time>${fmtT(el)}</time>`; li.appendChild(document.createTextNode(text)); const list=$("#feedList"); list.prepend(li); while(list.children.length>40) list.lastChild.remove(); }
+function renderTranscript(){ const el=$("#transcript"); const w=S.words.slice(-28); el.innerHTML=""; const p=document.createElement("div"); w.forEach(x=>{ const s=document.createElement("span"); s.textContent=x.raw+" "; if(x.filler) s.className="f"; else if(x.jargon) s.className="j"; p.appendChild(s); }); el.appendChild(p); }
+function setStatus(t){ $("#status").textContent=t; }
+let msgTimer; function showMsg(t){ const m=$("#msg"); m.textContent=t; m.hidden=false; clearTimeout(msgTimer); msgTimer=setTimeout(()=>m.hidden=true,7000); }
+function meter(id,val,frac,cls,note){ const m=$(id); m.querySelector(".val").innerHTML=val; m.querySelector(".track i").style.width=(clamp(frac)*100)+"%"; m.className="meter "+(cls||""); if(note!==undefined) m.querySelector(".note").textContent=note; }
+function renderHUD(){
+  if(S.mode!=="live"){ return; }
+  const s=S.sig; const sp=s.silence<2500;
+  meter("#mPace", `${Math.round(s.wpm)}<small>wpm</small>`, s.wpm/250, s.wpm>175||(s.wpm<105&&sp&&now()-S.t0>6000)?"hot":s.wpm>=125&&s.wpm<=165?"ok":"");
+  meter("#mVol", sp?Math.round(s.energy*100):"—", s.energy, s.energy<.25&&sp?"hot":"", s.energy<.25&&sp?"Too quiet for the back row":"Project to the back row");
+  meter("#mPitch", s.variety===null?"—<small>st</small>":`${s.variety.toFixed(1)}<small>st</small>`, (s.variety||0)/10, s.variety===null?"":s.variety<2.2?"hot":s.variety>4?"ok":"", s.variety!==null&&s.variety<2.2?"Monotone":"Pitch range, last 7 s");
+  meter("#mFill", String(S.fillerCount), s.fillerRate*4, s.fillerRate>.12?"bad":s.fillerRate>.06?"hot":"ok");
+  meter("#mClar", Math.round(s.clarity*100)+"%", s.clarity, s.clarity<.55?"bad":s.clarity<.75?"hot":"ok", s.ramble>.4?"Rambling":s.jargon>.3?"Jargon heavy":s.offScript>.5?"Off script":"Rambling, jargon, fillers");
+  const c=S.counts||{}; meter("#mEng", Math.round(S.avgE*100)+"%", S.avgE, S.avgE<.4?"bad":S.avgE<.55?"hot":"ok", `${c.engaged||0} leaning in · ${c.phones||0} on phones · ${c.confused||0} puzzled`);
+}
+
+/* rooms panel */
+const roomsEl=$("#rooms");
+for(const [k,r] of Object.entries(ROOMS)){ const b=document.createElement("button"); b.className="room-card"; b.dataset.room=k; b.setAttribute("aria-pressed",k===cfg.room); b.innerHTML=`<b>${r.label}</b><span>${r.blurb}</span>`; b.onclick=()=>{ if(S.mode==="live") return showMsg("End the session before changing rooms."); cfg.room=k; const sz=$("#size"); sz.min=r.min; sz.max=r.max; sz.value=r.def; cfg.size=r.def; $("#sizeOut").textContent=r.def; roomsEl.querySelectorAll(".room-card").forEach(x=>x.setAttribute("aria-pressed",x.dataset.room===k)); rebuildSoon(); }; roomsEl.appendChild(b); }
+let rebuildTimer; function rebuildSoon(){ clearTimeout(rebuildTimer); rebuildTimer=setTimeout(buildRoom,120); }
+$("#size").oninput=e=>{ cfg.size=+e.target.value; $("#sizeOut").textContent=cfg.size; if(S.mode!=="live") rebuildSoon(); };
+for(const id of ["age","dress","temper","expert","phones"]) $("#"+id).addEventListener(id==="age"||id==="dress"?"change":"input",e=>{ cfg[id]= e.target.type==="range" ? +e.target.value : e.target.value; if(S.mode!=="live") rebuildSoon(); else retune(); });
+$("#skeptic").onchange=e=>{ cfg.skeptic=e.target.checked; if(S.mode!=="live") rebuildSoon(); };
+$("#shuffle").onclick=()=>{ cfg.seed=Math.floor(Math.random()*1e5); if(S.mode!=="live") buildRoom(); };
+function retune(){ const temper=cfg.temper/100; people.forEach(p=>{ p.spec.warmth=clamp(.55-(temper-.5)*.6+(rnd()-.5)*.4); p.spec.expertise=clamp(cfg.expert/100+(rnd()-.5)*.4); p.spec.phoneProne=clamp(cfg.phones/100*R(.4,1.5)); }); }
+
+const scriptEl=$("#script"); scriptEl.value=store.get("podium.script")||SAMPLE; prompterLoad(scriptEl.value);
+scriptEl.oninput=()=>{ store.set("podium.script",scriptEl.value); prompterLoad(scriptEl.value); };
+$("#resetScript").onclick=()=>{ scriptEl.value=SAMPLE; store.set("podium.script",SAMPLE); prompterLoad(SAMPLE); };
+
+$("#pFollow").onclick=()=>{ P.mode="follow"; $("#pFollow").setAttribute("aria-pressed",true); $("#pAuto").setAttribute("aria-pressed",false); };
+$("#pAuto").onclick=()=>{ P.mode="auto"; P.autoT=now()-P.ptr*(60000/140); $("#pAuto").setAttribute("aria-pressed",true); $("#pFollow").setAttribute("aria-pressed",false); };
+function setPSize(d){ P.size=clamp(P.size+d,16,44); $("#prompter").style.setProperty("--pSize",P.size+"px"); requestAnimationFrame(()=>prompterPaint(true)); }
+$("#pSmaller").onclick=()=>setPSize(-3); $("#pBigger").onclick=()=>setPSize(3);
+$("#pHide").onclick=e=>{ const on=e.currentTarget.getAttribute("aria-pressed")!=="true"; e.currentTarget.setAttribute("aria-pressed",on); e.currentTarget.textContent=on?"Show":"Hide"; $("#prompter").classList.toggle("hidden-text",on); };
+
+$("#btnMic").onclick=startMic;
+$("#btnDemo").onclick=()=>{ if(scriptEl.value!==SAMPLE){ savedScript=scriptEl.value; scriptEl.value=SAMPLE; prompterLoad(SAMPLE); } demo=buildDemo(); begin("demo"); };
+$("#btnEnd").onclick=endSession;
+$("#tSetup").onclick=()=>{ document.body.classList.toggle("show-setup"); document.body.classList.remove("show-feed"); };
+$("#tFeed").onclick=()=>{ document.body.classList.toggle("show-feed"); document.body.classList.remove("show-setup"); };
+$("#repClose").onclick=()=>{ $("#report").hidden=true; resetUIAfter(); };
+function resetUIAfter(){ if(savedScript!==null){ scriptEl.value=savedScript; prompterLoad(savedScript); savedScript=null; } S.mode="idle"; $("#btnMic").hidden=false; $("#btnDemo").hidden=false; $("#statePill").textContent="REHEARSAL"; idleChatter(); people.forEach(p=>p.stateUntil=0); setStatus("Change the room or audience, then go again."); }
+
+/* look-around + inspector */
+let drag=null;
+canvas.addEventListener("pointerdown",e=>{ drag={x:e.clientX,y:e.clientY,yaw:view.tYaw,pitch:view.tPitch,moved:false}; canvas.setPointerCapture(e.pointerId); });
+canvas.addEventListener("pointermove",e=>{ if(!drag) return; const dx=e.clientX-drag.x, dy=e.clientY-drag.y; if(Math.abs(dx)+Math.abs(dy)>4) drag.moved=true; view.tYaw=clamp(drag.yaw-dx*.004,-1.1,1.1); view.tPitch=clamp(drag.pitch-dy*.003,-.4,.35); });
+canvas.addEventListener("pointerup",e=>{ if(drag && !drag.moved) pickPerson(e); drag=null; });
+const ray=new THREE.Raycaster(), ndc=new THREE.Vector2(); let inspected=null;
+function pickPerson(e){ ndc.set(e.clientX/innerWidth*2-1, -(e.clientY/innerHeight)*2+1); ray.setFromCamera(ndc,camera); const hit=ray.intersectObjects(roomGroup.children,true).find(h=>h.object.userData.pid!==undefined); inspected = hit ? people[hit.object.userData.pid] : null; const box=$("#inspect"); if(!inspected){ box.hidden=true; return; } box.style.left=Math.min(innerWidth-236,e.clientX+14)+"px"; box.style.top=Math.max(60,Math.min(innerHeight-240,e.clientY-40))+"px"; box.hidden=false; renderInspect(); }
+const thoughts={idle:"Settling in, chatting with a neighbour",listening:"Following along",engaged:"Hooked. Wants to hear what's next",drifting:"Mind is wandering",["checked-out"]:"Has stopped listening",phone:"Checking messages",confused:"Lost the thread",applause:"Clapping"};
+function bar(v,color){ return `<div class="track"><i style="width:${Math.round(clamp(v)*100)}%;background:${color}"></i></div>`; }
+function renderInspect(){ if(!inspected) return; const p=inspected, s=p.spec; $("#inspect").innerHTML=`<b>${s.name}</b><span class="sub">${s.role} · ${s.age}${s.skeptic?" · the skeptic":""}</span><span class="state">${p.state}</span><span class="sub">${thoughts[p.state]||""}</span>
+  <div class="kv"><span>Engagement</span>${bar(p.e,"var(--amber)")}<span>Confusion</span>${bar(p.c,"var(--puzzle)")}<span>Patience</span>${bar(s.patience,"var(--muted)")}<span>Knows topic</span>${bar(s.expertise,"var(--muted)")}</div>`; }
+
+/* =========================================================================
+   REPORT
+   ========================================================================= */
+function median(a){ if(!a.length) return 0; const b=[...a].sort((x,y)=>x-y); return b[Math.floor(b.length/2)]; }
+let lastReport=null;
+function showReport(){
+  const dur=(S.tEnd-S.t0)/1000, words=S.words.filter(w=>!w.filler).length;
+  const wpm=median(S.wpmSamples), variety=median(S.varietySamples);
+  const tl=S.timeline; const avgE=tl.length? tl.reduce((a,b)=>a+b.e,0)/tl.length : S.avgE;
+  const fpm=S.fillerCount/Math.max(.5,dur/60);
+  const scripted=S.words.filter(w=>w.onScript!==null), cover=P.words.length? Math.min(1,P.ptr/P.words.length):0;
+  const paceScore=100-clamp(Math.abs(wpm-145)-15,0,60)*1.6;
+  const varScore=clamp((variety-1)/4)*100, fillScore=100-clamp(fpm*12,0,100);
+  const clarScore=clamp(1-S.longestRun/140)*100;
+  const score=Math.round(avgE*100*.4 + paceScore*.15 + varScore*.15 + fillScore*.15 + clarScore*.15);
+  const jargon=Object.keys(S.jargonUsed);
+  $("#repMeta").textContent=`${ROOMS[cfg.room].label} · ${people.length} people · ${fmtT(dur)}${S.source==="demo"?" · demo run":""}`;
+  $("#repScore").innerHTML=`${score}<small>/100</small>`;
+  $("#repSummary").textContent = summaryLine(score,avgE,wpm,variety,fpm);
+  const stats=[[fmtT(dur),"Duration"],[`${Math.round(wpm)}`,"Median pace (wpm)"],[`${variety?variety.toFixed(1):"—"} st`,"Pitch range (median)"],[`${S.fillerCount}`,`Fillers (${fpm.toFixed(1)}/min)`],[`${Math.round(avgE*100)}%`,"Avg engagement"],[`${S.longestRun}`,"Longest run without a pause (words)"],[`${S.emphasisCount}`,"Emphasis beats that landed"],[P.words.length?`${Math.round(cover*100)}%`:"—","Script covered"]];
+  $("#repStats").innerHTML=stats.map(([v,l])=>`<div class="stat"><span class="v">${v}</span><span class="l">${l}</span></div>`).join("");
+  const mom=S.moments.slice().sort((a,b)=>a.t-b.t).slice(0,6);
+  $("#repMoments").innerHTML = mom.length ? mom.map(m=>`<li class="${m.kind}"><time>${fmtT(m.t)}</time>${m.text} (${m.cause})<q>…${escapeHTML(m.snippet)}</q></li>`).join("") : `<li>No big swings. The room stayed steady.</li>`;
+  const tips=[];
+  if(S.longestRun>45) tips.push(`Break up long runs. Your longest stretch was ${S.longestRun} words without a breath; land a point, then pause for a beat.`);
+  if(wpm>170) tips.push(`Slow down. Your median was ${Math.round(wpm)} wpm; the sweet spot for a live room is 130–160.`);
+  if(wpm && wpm<115) tips.push(`Pick up the pace a little; ${Math.round(wpm)} wpm lets attention drift.`);
+  if(variety && variety<2.6) tips.push(`Add vocal variety. A ${variety.toFixed(1)}-semitone range sounds flat; lift your pitch on the numbers and the ask.`);
+  if(fpm>3){ const top=Object.entries(S.fillers).sort((a,b)=>b[1]-a[1]).slice(0,3).map(([k,v])=>`“${k}” ×${v}`).join(", "); tips.push(`Swap fillers for silence: ${top}. A pause sounds more confident than “um”.`); }
+  if(jargon.length) tips.push(`Translate jargon for this crowd: ${jargon.map(j=>`“${j}”`).join(", ")}. Say what you mean in plain words.`);
+  if(S.emphasisCount>=3) tips.push(`Keep your emphasis. ${S.emphasisCount} stressed words drew nods; that's the delivery to build on.`);
+  if(!tips.length) tips.push("Solid run. Next time, try a tougher crowd or a larger room.");
+  $("#repTips").innerHTML=tips.slice(0,5).map(t=>`<li>${escapeHTML(t)}</li>`).join("");
+  lastReport={score,dur,wpm,variety,fpm,fillers:S.fillers,avgE,longestRun:S.longestRun,jargon,moments:mom,transcript:S.words.map(w=>w.raw).join(" "),room:ROOMS[cfg.room].label,size:people.length,crowd:{age:cfg.age,dress:cfg.dress,temper:cfg.temper,expert:cfg.expert}};
+  $("#coach").hidden=true; $("#coach").textContent="";
+  $("#report").hidden=false; requestAnimationFrame(drawChart);
+}
+function summaryLine(score,e,wpm,v,fpm){ const good=[],bad=[]; if(e>.6) good.push("held the room"); else if(e<.45) bad.push("lost the room in places");
+  if(wpm>=125&&wpm<=165) good.push("kept a good pace"); else if(wpm>165) bad.push("rushed"); if(v>=3.5) good.push("sounded lively"); else if(v&&v<2.6) bad.push("sounded flat at times"); if(fpm>3) bad.push("leaned on fillers");
+  return `You ${good.length?good.join(", "):"got through it"}${bad.length?`, but ${bad.join(" and ")}`:""}. ${score>=80?"Ready for the real thing.":score>=60?"A couple of fixes away.":"Worth another rehearsal."}`; }
+function escapeHTML(s){ return s.replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+function drawChart(){
+  const c=$("#chart"), dpr=Math.min(2,devicePixelRatio), W=c.clientWidth, H=c.clientHeight; c.width=W*dpr; c.height=H*dpr; const g=c.getContext("2d"); g.scale(dpr,dpr);
+  const css=getComputedStyle(document.documentElement), col=k=>css.getPropertyValue(k).trim();
+  const tl=S.timeline; const pad={l:36,r:40,t:10,b:22}; const w=W-pad.l-pad.r, h=H-pad.t-pad.b; if(tl.length<2) return;
+  const T=tl[tl.length-1].t; const X=t=>pad.l+t/T*w, Y=v=>pad.t+(1-v)*h, Yw=v=>pad.t+(1-clamp(v/250))*h;
+  g.font="11px "+col("--f-mono"); g.fillStyle=col("--muted"); g.strokeStyle=col("--line"); g.lineWidth=1;
+  for(const v of [0,.25,.5,.75,1]){ g.beginPath(); g.moveTo(pad.l,Y(v)); g.lineTo(W-pad.r,Y(v)); g.stroke(); g.textAlign="right"; g.fillText(Math.round(v*100)+"%",pad.l-6,Y(v)+4); g.textAlign="left"; g.fillText(Math.round(v*250),W-pad.r+6,Y(v)+4); }
+  const ticks=Math.min(6,Math.floor(T/15)); for(let i=0;i<=ticks;i++){ const t=T*i/Math.max(1,ticks); g.textAlign="center"; g.fillText(fmtT(t),X(t),H-6); }
+  g.fillStyle="rgba(92,211,154,.08)"; g.fillRect(pad.l,Yw(160),w,Yw(130)-Yw(160));
+  const line=(f,color,width,dash)=>{ g.beginPath(); tl.forEach((p,i)=>{ const x=X(p.t), y=f(p); i?g.lineTo(x,y):g.moveTo(x,y); }); g.strokeStyle=color; g.lineWidth=width; g.setLineDash(dash||[]); g.stroke(); g.setLineDash([]); };
+  g.beginPath(); tl.forEach((p,i)=>{ const x=X(p.t),y=Y(p.e); i?g.lineTo(x,y):g.moveTo(x,y); }); g.lineTo(X(T),Y(0)); g.lineTo(X(0),Y(0)); g.closePath(); g.fillStyle="rgba(255,178,74,.14)"; g.fill();
+  line(p=>Yw(p.wpm),col("--muted"),1.2,[3,3]); line(p=>Y(p.c),col("--puzzle"),2); line(p=>Y(p.e),col("--amber"),2.4);
+  const lastP=tl[tl.length-1]; g.fillStyle=col("--amber"); g.beginPath(); g.arc(X(lastP.t),Y(lastP.e),3.5,0,7); g.fill();
+}
+
+/* Claude coaching (only inside claude.ai, where the page can ask Claude) */
+let sampleFn=null;
+if(window.claude?.use){ window.claude.use("sample").then(s=>{ sampleFn=s; if(s) $("#coachWrap").hidden=false; }).catch(()=>{}); }
+$("#btnCoach").onclick=async()=>{
+  if(!sampleFn||!lastReport) return; const out=$("#coach"); out.hidden=false; out.textContent="Thinking…"; $("#btnCoach").disabled=true;
+  const r=lastReport;
+  const prompt=`You are a warm, direct public-speaking coach. A speaker just rehearsed in a simulated ${r.room} with ${r.size} people (audience: ${r.crowd.age}, dress ${r.crowd.dress}, toughness ${r.crowd.temper}/100, subject knowledge ${r.crowd.expert}/100).
+Measured delivery: score ${r.score}/100, duration ${Math.round(r.dur)}s, median pace ${Math.round(r.wpm)} wpm, median pitch range ${r.variety?r.variety.toFixed(1):"n/a"} semitones, fillers ${r.fpm.toFixed(1)}/min ${JSON.stringify(r.fillers)}, longest unbroken run ${r.longestRun} words, average audience engagement ${Math.round(r.avgE*100)}%, jargon used: ${r.jargon.join(", ")||"none"}.
+Key moments: ${r.moments.map(m=>`${fmtT(m.t)} ${m.text} (${m.cause}) while saying "${m.snippet}"`).join("; ")||"none"}.
+Transcript (from speech recognition, may contain errors): """${r.transcript.slice(0,6000)}"""
+Give: 1) a two-sentence overall read, 2) the three highest-impact fixes, each quoting the exact line from the transcript and a rewritten version, 3) one thing to keep doing. Plain text, no markdown headings, under 280 words.`;
+  try{ await sampleFn(prompt,{onText:({text})=>{ out.textContent=text; }, modelTier:"default"}); }
+  catch(e){ out.textContent = e && e.code==="rate_limited" ? "Claude is busy right now. Try again in a minute." : "Coaching isn't available in this view."; }
+  finally{ $("#btnCoach").disabled=false; }
+};
+
+/* =========================================================================
+   MAIN LOOP
+   ========================================================================= */
+let last=now(), tickAcc=0, pollAcc=0, tlAcc=0, wakeLock=null;
+async function wake(on){ try{ if(on && navigator.wakeLock) wakeLock=await navigator.wakeLock.request("screen"); else if(wakeLock){ await wakeLock.release(); wakeLock=null; } }catch(e){} }
+function frame(){
+  const t=now(), dt=Math.min(.05,(t-last)/1000); last=t;
+  if(S.mode==="live"){
+    pollAcc+=dt; if(pollAcc>=.05){ pollAcc=0; if(S.source==="mic") pollMic(t); else if(demo) pollDemo(t); }
+  }
+  tickAcc+=dt; if(tickAcc>=.25){ tickAcc=0; if(S.mode==="live") computeSignals(t); updateAudience(t); renderHUD(); if(inspected && !$("#inspect").hidden) renderInspect(); }
+  if(S.mode==="live"){ tlAcc+=dt; if(tlAcc>=1){ tlAcc=0; S.timeline.push({t:(t-S.t0)/1000,e:S.avgE,c:S.avgC,wpm:S.sig.wpm}); } }
+  animatePeople(dt,t/1000);
+  prompterTick(dt);
+  view.yaw=lerp(view.yaw,view.tYaw,1-Math.exp(-dt*6)); view.pitch=lerp(view.pitch,view.tPitch,1-Math.exp(-dt*6));
+  const sway=Math.sin(t/1700)*.012;
+  camera.position.copy(view.base).add(new THREE.Vector3(sway,Math.sin(t/2300)*.006,0));
+  const dir=new THREE.Vector3().subVectors(view.look,view.base); const len=dir.length(); dir.normalize();
+  dir.applyAxisAngle(new THREE.Vector3(0,1,0),view.yaw); dir.y+=view.pitch; camera.lookAt(camera.position.clone().add(dir.multiplyScalar(len)));
+  renderer.render(scene,camera);
+  requestAnimationFrame(frame);
+}
+resize(); buildRoom(); requestAnimationFrame(frame);
+</script>
+</body>
+</html>
