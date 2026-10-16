@@ -296,6 +296,7 @@ textarea{width:100%;box-sizing:border-box;min-height:160px;border:0;border-top:1
 <script>
 "use strict";
 const $=s=>document.querySelector(s);
+document.body.classList.add("setup-open");
 const clamp=(v,a=0,b=1)=>Math.max(a,Math.min(b,v));
 const lerp=(a,b,t)=>a+(b-a)*t;
 const now=()=>performance.now();
@@ -511,7 +512,13 @@ const lights={
 /* ------------------------------------------------------------------ people */
 const loader=new THREE.GLTFLoader();
 const templates=new Map();
-function loadTemplate(id){ if(!templates.has(id)) templates.set(id,new Promise((res,rej)=>loader.load(`avatars/${id}.glb`,g=>res(PodiumRig.prepare(g.scene,.5)),undefined,rej))); return templates.get(id); }
+// Avatars ship as .glb; where a host can't serve that type, the same bytes come base64-wrapped in .json.
+async function fetchAvatar(id){
+  try{ const r=await fetch(`avatars/${id}.glb`); if(r.ok){ const b=await r.arrayBuffer(); if(new Uint32Array(b,0,1)[0]===0x46546C67) return b; } }catch(e){}
+  const r=await fetch(`avatars/${id}.json`); if(!r.ok) throw new Error("missing avatar");
+  const bin=atob((await r.json()).glb), u=new Uint8Array(bin.length); for(let i=0;i<bin.length;i++) u[i]=bin.charCodeAt(i); return u.buffer;
+}
+function loadTemplate(id){ if(!templates.has(id)) templates.set(id,fetchAvatar(id).then(buf=>new Promise((res,rej)=>loader.parse(buf,"",g=>res(PodiumRig.prepare(g.scene,.5)),rej)))); return templates.get(id); }
 const phoneGeo=new THREE.BoxGeometry(.075,.15,.009), phoneMat=mat("#1E1C1A",{roughness:.3,metalness:.3}), screenGeo=new THREE.PlaneGeometry(.066,.138), screenMat=new THREE.MeshBasicMaterial({color:"#DCE7F2"});
 let people=[], building=0, firstBuild=true;
 
