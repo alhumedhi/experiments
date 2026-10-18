@@ -4,41 +4,53 @@
 
 | Piece | In the prototype | Production target |
 |---|---|---|
-| Room choice | 5 venues: boardroom, classroom, lecture hall, auditorium, banquet hall | Photoreal captured or generated venues, plus the user's own room |
-| People | 26 rigged, textured humans from Microsoft Rocketbox (MIT), seated and animated in the browser | MetaHuman-grade digital humans with full facial animation |
-| Audience size | 3–160 seats depending on venue | 300+ with LOD |
-| Curation | Pick exactly who attends (face grid, Business / Mixed / Casual presets), plus mood, topic knowledge, phones and a front-row skeptic | Per-seat editor, saved crowds |
-| Teleprompter | Follows your voice (fuzzy matching that recovers when you skip ahead) or auto-scrolls; import .txt, .md, .docx or .pdf | Same, plus inline pacing cues |
-| Live listening | Web Audio for volume, pitch and pauses; Web Speech API for words | Streaming STT with word timestamps, a prosody model, an LLM meaning loop |
-| Reactions | Each person's state drives posture, head and eye direction, saccades, blinks, brows, smile, nods on emphasis, phones, crossed arms, hand to chin, applause | Same brain driving full facial performance |
-| Analysis | Kept for the end: score, four key numbers, attention and confusion timeline with hover, key moments with what you were saying, next steps, optional Claude coaching | Same, plus video replay with reactions overlaid |
+| Rooms | 5 built venues, plus **your own room from a photo**: the photo becomes the backdrop, Claude reads it (eye level, field of view, where the floor is, light direction, capacity) and the audience is seated to match, with shadows on the floor. Sliders fine-tune the fit. | A real 3D capture of the room (section 2.1) |
+| People | 26 rigged, textured humans from Microsoft Rocketbox (MIT) | MetaHuman-grade digital humans |
+| Body language | Real seated **motion capture** from Rocketbox (breathing, waiting, yawning, looking around, scratching heads, touching faces, thinking, coughing, shrugging) blended per person, with reactions layered on top: gaze toward you, eye saccades, blinks, nods on emphasis, brows, smiles, lean, phones, crossed arms, hand to chin, whispering, contagious yawns, applause | A captured library of real audience behaviour |
+| Crowd model | Each person has attention, confusion and boredom. Boredom builds on dull delivery, faster for impatient people and tougher rooms; hooks win them back. Phones spread from neighbour to neighbour. **Brutal** mode: bore them for a few seconds and the phones come out | Same model, with weights fitted to real audiences |
+| Curation | Pick who attends from a face grid, plus mood (Warm, Neutral, Tough, Brutal), topic knowledge, phones and a skeptic | Per-seat editor, saved crowds |
+| Teleprompter | Follows your voice or auto-scrolls; import .txt, .md, .docx or .pdf | Same, plus pacing cues |
+| Listening | Web Audio for volume, pitch and pauses; Web Speech API for words | Streaming STT plus a live LLM meaning loop (section 3) |
+| Analysis | At the end only: score, key numbers, attention and confusion over time, moments (including when the first phone came out), next steps, and Claude's coaching, which now runs automatically | Same, plus video replay |
 
-**How realistic are the people?** Rocketbox avatars are game-quality digital humans with real skin textures, clothing and hair, built for research on virtual audiences. They read as real people at a glance, especially from a few metres away. Up close they're short of photoreal: hair is alpha cards, skin has no subsurface scattering, and facial expressions come from bones, not scanned blendshapes. The browser can't render better than this in real time for a whole room. The next step up is Route A below.
+**How real is it?** The people read as real at a glance and move like real people because the motion is captured from real people. Up close they are still game-quality: hair is cards, skin has no subsurface scattering, and expressions come from a few face bones. Photo rooms are a flat backdrop, so people can't go behind furniture in the photo and you can't look around.
 
-**Known gap:** the browser's speech recognition often drops "um" and "uh", so filler counts run low. A production STT fixes that (section 3).
+**Why Claude isn't reacting live yet:** the hosted page may only call Claude on a user action, not on a timer. So Claude reads your room photo when you add it and writes the coaching when you finish, and the live reactions run on local signals. The live meaning loop belongs on a server (section 3).
 
-## 2. Making it look real: three rendering routes
+## 2. Making it photorealistic
 
-### Route A (recommended): Unreal Engine 5 + MetaHumans, streamed to the browser
+### 2.1 The room: from one photo to a real 3D space
+1. **Depth from the photo (next step, still in the browser).** Run a monocular depth model (Depth Anything V2 or Apple Depth Pro) on the uploaded photo. That gives the floor plane and per-pixel depth, so seats land on the real floor and people are hidden behind real desks and rows. This fixes the biggest giveaway today.
+2. **A navigable room from one photo.** World Labs Marble turns a single image into a 3D Gaussian-splat world. Render it in the browser with Spark (World Labs' Three.js renderer) or in Unreal. The speaker can then look around and walk the stage.
+3. **A true capture.** Ask for a 30-second phone video instead of a photo and reconstruct a Gaussian splat (Polycam, Luma or Scaniverse). This gives the most photoreal result: the room looks exactly like the room.
+4. **Match the lighting.** Estimate an HDR light probe from the photo and light the avatars with it, so skin and clothes pick up the room's real light colour and direction. Today Claude only estimates a direction, warmth and brightness.
+
+### 2.2 The people
+
+#### Route A (recommended): Unreal Engine 5 + MetaHumans, streamed to the browser
 - **Digital humans:** MetaHuman (Epic). Parametric faces, bodies, skin, hair, and clothing, so curation maps directly onto MetaHuman parameters. Facial rig uses ARKit-style blendshapes, so the reaction brain outputs curves like `browInnerUp`, `mouthSmile`, `headPitch`.
 - **Crowd scale:** full MetaHumans in the first 2–3 rows. Further back, lower-LOD MetaHumans, or baked vertex-animation crowds driven by UE's Mass framework. 300 people at 60 fps is realistic on one cloud GPU if only the front rows get full facial animation.
 - **Venues:** capture real rooms as Gaussian splats (Polycam, Luma, Scaniverse) and import them into UE5 through a 3DGS plugin, or generate them from a prompt or photo with World Labs Marble. Authored venues from the Fab marketplace work as a fallback. "Upload a photo of your actual conference room" is a strong feature.
 - **Delivery:** Unreal Pixel Streaming (WebRTC) to the browser, on a cloud GPU (AWS G5/G6 or a managed host such as Arcware, PureWeb, or Vagon). The user's mic goes up the same WebRTC connection.
 - **Trade-off:** best realism, but one GPU per concurrent user is the main running cost.
 
-### Route B: web-native (cheaper, less real)
+#### Route B: web-native (cheaper, less real)
 - Three.js / React Three Fiber, with WebGPU where available.
 - Gaussian-splat rooms in the browser with Spark (World Labs' Three.js splat renderer).
 - Rigged glTF avatars (Reallusion Character Creator exports, or MetaHumans where the licence allows use outside Unreal) animated with the same blendshape curves.
 - Runs on the user's own GPU, so it costs almost nothing per session. Looks a clear step below Route A.
 
-### Route C: photoreal video avatars for a featured panel
+#### Route C: photoreal video avatars for a featured panel
 - Real-time talking-head services (Tavus, HeyGen LiveAvatar, Simli, Anam, D-ID) produce truly photoreal faces over WebRTC.
 - Each stream is one person and is billed per minute, so they suit a **3–5 person interview panel or a Q&A moment**, not a 200-seat crowd.
 - Good hybrid: crowd in Route A or B, plus a photoreal close-up when an audience member asks a question.
 
-**Recommendation:** prototype the brain and analysis on Route B (this repo), then build the product renderer on Route A. Add Route C for interview-panel and Q&A modes.
+**Recommendation:** keep this repo as the testbed for the brain and analysis. Build the product renderer on Route A, with the room as a Gaussian splat from 2.1, and add Route C for interview panels.
 
+### 2.3 Behaviour that matches real people
+- **Capture real audiences.** Record real listeners with markerless motion capture (Move.ai or Rokoko Vision) and face capture (MetaHuman Animator or Live Link Face). Record them through good talks, boring talks and confusing ones, and build a clip library tagged by state. That is what makes the behaviour believable, more than any renderer.
+- **Fit the brain to data.** Film real audiences during real talks, label attention cues (gaze on the speaker, phone use, posture, fidgeting) second by second, and fit the boredom and confusion weights so the simulated room reacts on the same timescale as real rooms.
+- **Live meaning.** Run Claude on the server every few seconds over the live transcript (section 3), so people laugh at a joke that lands and look lost at an unexplained idea. Local acoustic signals can't detect either.
 ## 3. Making it react in real time
 
 People in a real audience react 0.3–1.5 s after a cue, so the system needs three loops at different speeds:

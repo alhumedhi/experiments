@@ -217,11 +217,19 @@ textarea{width:100%;box-sizing:border-box;min-height:160px;border:0;border-top:1
   <div class="sheet-body">
     <div class="label">Venue</div>
     <div class="list" id="venues"></div>
+    <div class="list" id="photoPanel" hidden style="margin-top:8px">
+      <div class="row"><img id="photoThumb" alt="" style="width:64px;height:44px;object-fit:cover;border-radius:8px;flex:none"><span class="grow">Your photo</span><button class="pill soft" id="bPhoto" style="padding:6px 12px;font-size:13px">Replace</button></div>
+      <div class="stack" style="padding-block:10px"><span id="photoNote" style="font-size:13px;color:var(--ink-2)"></span></div>
+      <div class="stack"><div class="top-line"><label for="pHorizon">Eye level</label><output id="pHorizonOut"></output></div><input type="range" id="pHorizon" min="15" max="85" value="45"></div>
+      <div class="stack"><div class="top-line"><label for="pRow">First row</label><output id="pRowOut"></output></div><input type="range" id="pRow" min="12" max="80" value="26"></div>
+      <div class="stack"><div class="top-line"><label for="pWidth">Seating width</label><output id="pWidthOut"></output></div><input type="range" id="pWidth" min="3" max="20" value="7"></div>
+    </div>
+    <input type="file" id="photoFile" accept="image/jpeg,image/png,image/webp" hidden>
 
     <div class="label">Audience</div>
     <div class="list">
       <div class="stack"><div class="top-line"><label for="size">Size</label><output id="sizeOut">8 people</output></div><input type="range" id="size" min="3" max="14" value="8"></div>
-      <div class="stack"><span>Mood</span><div class="seg" id="mood" role="group" aria-label="Mood"><button data-v="0.2">Warm</button><button data-v="0.5" aria-pressed="true">Neutral</button><button data-v="0.82">Tough</button></div></div>
+      <div class="stack"><span>Mood</span><div class="seg" id="mood" role="group" aria-label="Mood"><button data-v="0.2">Warm</button><button data-v="0.5" aria-pressed="true">Neutral</button><button data-v="0.78">Tough</button><button data-v="0.96">Brutal</button></div><span class="hint" id="moodHint" style="padding:0">A typical room. Polite, but attention has to be earned.</span></div>
       <div class="stack"><span>Knows the topic</span><div class="seg" id="know" role="group" aria-label="Knows the topic"><button data-v="0.15" aria-pressed="true">A little</button><button data-v="0.45">Somewhat</button><button data-v="0.8">Experts</button></div></div>
       <label class="row"><span class="grow">Phones out</span><span class="switch"><input type="checkbox" id="phones"><span></span></span></label>
       <label class="row"><span class="grow">Skeptic in the front row</span><span class="switch"><input type="checkbox" id="skeptic" checked><span></span></span></label>
@@ -237,7 +245,7 @@ textarea{width:100%;box-sizing:border-box;min-height:160px;border:0;border-top:1
       <div class="btnrow"><button class="pill soft" id="bImport"><svg class="i" viewBox="0 0 24 24"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>Import</button><button class="pill soft" id="bEdit">Edit text</button><button class="pill ghost" id="bSample">Use sample</button></div>
       <textarea id="script" hidden aria-label="Speech text"></textarea>
     </div>
-    <p class="hint">Text, Markdown, Word or PDF. You can also drop a file anywhere.</p>
+    <p class="hint">Text, Markdown, Word or PDF. You can also drop a file, or a photo of your room, anywhere.</p>
     <input type="file" id="file" accept=".txt,.md,.markdown,.docx,.pdf,text/plain" hidden>
   </div>
 </aside>
@@ -261,7 +269,7 @@ textarea{width:100%;box-sizing:border-box;min-height:160px;border:0;border-top:1
 <button id="showUI" class="glass" hidden><svg class="i" viewBox="0 0 24 24"><path d="M3 12s3.5-6 9-6 9 6 9 6-3.5 6-9 6-9-6-9-6z"/><circle cx="12" cy="12" r="2.5"/></svg>Show interface</button>
 <div id="card" class="glass" hidden></div>
 <div id="toast" class="glass" hidden></div>
-<div id="drop" hidden>Drop your speech to load it</div>
+<div id="drop" hidden>Drop your speech, or a photo of your room</div>
 
 <div id="report" hidden>
   <div class="rep">
@@ -350,9 +358,11 @@ const ROOMS={
   lecture:{label:"Lecture hall",min:20,max:120,def:56},
   auditorium:{label:"Auditorium",min:40,max:160,def:96},
   banquet:{label:"Banquet hall",min:8,max:64,def:32},
+  photo:{label:"Your own room",min:3,max:60,def:16},
 };
-const ROLES={boardroom:["Chief executive","Finance lead","Head of product","Board member","Investor","General counsel","Head of sales","Operations lead"],classroom:["Student"],lecture:["Researcher","Graduate student","Attendee","Professor"],auditorium:["Attendee","Founder","Designer","Engineer","Journalist"],banquet:["Guest","Cousin","Old friend","Colleague","Neighbour"]};
-const cfg={room:"boardroom",size:8,temper:.5,expert:.15,phones:false,skeptic:true,seed:11,pool:new Set(CAST.map(c=>c.id))};
+const ROLES={boardroom:["Chief executive","Finance lead","Head of product","Board member","Investor","General counsel","Head of sales","Operations lead"],classroom:["Student"],lecture:["Researcher","Graduate student","Attendee","Professor"],auditorium:["Attendee","Founder","Designer","Engineer","Journalist"],banquet:["Guest","Cousin","Old friend","Colleague","Neighbour"],photo:["Colleague","Guest","Attendee","Manager","Client"]};
+const cfg={room:"boardroom",size:8,temper:.5,expert:.15,phones:false,skeptic:true,seed:11,pool:new Set(CAST.map(c=>c.id)),photo:null};
+const MOOD_HINTS={"0.2":"Friendly and patient. They forgive a slow start.","0.5":"A typical room. Polite, but attention has to be earned.","0.78":"Impatient. Rambling and jargon cost you quickly.","0.96":"Bore them for a few seconds and phones come out, and it spreads."};
 
 /* ------------------------------------------------------------------ renderer */
 const canvas=$("#scene");
@@ -369,7 +379,7 @@ const camera=new THREE.PerspectiveCamera(50,1,.05,120);
 let roomGroup=new THREE.Group(); scene.add(roomGroup);
 let SHADOWS=false;
 const view={base:new THREE.Vector3(),look:new THREE.Vector3(),yaw:0,pitch:0,tYaw:0,tPitch:0};
-function resize(){ const w=innerWidth,h=innerHeight; renderer.setSize(w,h,false); camera.aspect=w/h; camera.fov=w/h<.8?66:50; camera.updateProjectionMatrix(); }
+function resize(){ const w=innerWidth,h=innerHeight; renderer.setSize(w,h,false); camera.aspect=w/h; camera.fov=w/h<.8?66:50; if(cfg.room==="photo"&&cfg.photo) fitPhoto(); camera.updateProjectionMatrix(); }
 addEventListener("resize",resize);
 
 const matCache=new Map();
@@ -499,6 +509,27 @@ const builders={
     return {seats,eye:[0,.3+1.64,.6],look:[0,1.0,-6]};
   },
 };
+builders.photo=function(n){
+  const ph=cfg.photo, floor=new THREE.Mesh(new THREE.PlaneGeometry(80,80),new THREE.ShadowMaterial({opacity:.3}));
+  floor.rotation.x=-Math.PI/2; floor.receiveShadow=true; roomGroup.add(floor);
+  const style=ph.chair||"theater", sp=style==="theater"?.62:.7, per=Math.max(2,Math.floor(ph.width/sp)), seats=[];
+  for(let k=0;k<n;k++){ const r=Math.floor(k/per), i=k%per, inRow=Math.min(per,n-r*per), x=ph.centerX+(i-(inRow-1)/2)*sp, z=-(ph.d0+r*1.0); seats.push({x,y:0,z,ry:faceAngle(x,z,0,0),chair:style}); }
+  const [r,g,b]=ph.avg, avg=new THREE.Color(r/255,g/255,b/255), sky=avg.clone().lerp(new THREE.Color("#ffffff"),.55), ground=avg.clone().multiplyScalar(.55);
+  lights.add(new THREE.HemisphereLight(sky,ground,.45+ph.brightness*.35));
+  const dir={left:[-6,6,-2],right:[6,6,-2],front:[0,6,-8],behind:[0,6,4],above:[0,9,-3]}[ph.light]||[-3,7,1];
+  lights.sun(new THREE.Color("#FFFFFF").lerp(new THREE.Color("#FFD2A0"),ph.warmth),.55+ph.brightness*.65,dir,[0,0,-ph.d0-2],14);
+  scene.fog=null; scene.background=ph.tex;
+  return {seats,eye:[0,1.6,0],look:[0,1.6,-10]};
+};
+// Match the 3D camera to the photo: crop it to cover the screen, then pitch so eye level lands where it is in the photo.
+function fitPhoto(){
+  const ph=cfg.photo, sA=innerWidth/innerHeight, pA=ph.aspect, hf=ph.hfov*Math.PI/180, vf=2*Math.atan(Math.tan(hf/2)/pA);
+  let camVf, hS;
+  if(sA>pA){ const vis=pA/sA; ph.tex.repeat.set(1,vis); ph.tex.offset.set(0,(1-vis)/2); camVf=2*Math.atan(Math.tan(vf/2)*vis); hS=(ph.horizon-(1-vis)/2)/vis; }
+  else { const vis=sA/pA; ph.tex.repeat.set(vis,1); ph.tex.offset.set((1-vis)/2,0); const chf=2*Math.atan(Math.tan(hf/2)*vis); camVf=2*Math.atan(Math.tan(chf/2)/sA); hS=ph.horizon; }
+  camera.fov=camVf*180/Math.PI; camera.updateProjectionMatrix();
+  const pitch=Math.atan(-(1-2*hS)*Math.tan(camVf/2)); view.base.set(0,1.6,0); view.look.set(0,1.6+Math.tan(pitch)*10,-10); view.yaw=view.tYaw=0; view.pitch=view.tPitch=0;
+}
 const lights={
   add(l){ roomGroup.add(l); if(l.target) roomGroup.add(l.target); return l; },
   sun(color,int,pos,target,size){ const d=this.add(new THREE.DirectionalLight(color,int)); d.position.set(...pos); d.target.position.set(...target);
@@ -518,13 +549,17 @@ async function fetchAvatar(id){
   const r=await fetch(`avatars/${id}.json`); if(!r.ok) throw new Error("missing avatar");
   const bin=atob((await r.json()).glb), u=new Uint8Array(bin.length); for(let i=0;i<bin.length;i++) u[i]=bin.charCodeAt(i); return u.buffer;
 }
-function loadTemplate(id){ if(!templates.has(id)) templates.set(id,fetchAvatar(id).then(buf=>new Promise((res,rej)=>loader.parse(buf,"",g=>res(PodiumRig.prepare(g.scene,.5)),rej)))); return templates.get(id); }
+const clipSets={}, genderOf=id=>/Female/.test(id)?"f":"m";
+// Seated motion capture (Rocketbox): breathing, waiting, yawns, looking around, scratching heads...
+function loadClips(g){ if(!clipSets[g]) clipSets[g]=fetch(`anims/${g}.json`).then(r=>r.ok?r.json():[]).then(PodiumRig.parseClips).catch(()=>[]); return clipSets[g]; }
+function loadTemplate(id){ if(!templates.has(id)) templates.set(id,Promise.all([fetchAvatar(id),loadClips(genderOf(id))]).then(([buf,clips])=>new Promise((res,rej)=>loader.parse(buf,"",g=>res(PodiumRig.prepare(g.scene,.5,clips)),rej)))); return templates.get(id); }
 const phoneGeo=new THREE.BoxGeometry(.075,.15,.009), phoneMat=mat("#1E1C1A",{roughness:.3,metalness:.3}), screenGeo=new THREE.PlaneGeometry(.066,.138), screenMat=new THREE.MeshBasicMaterial({color:"#DCE7F2"});
 let people=[], building=0, firstBuild=true;
 
 async function buildRoom(){
   const myBuild=++building;
   const pool=CAST.filter(c=>cfg.pool.has(c.id)); if(!pool.length) return;
+  if(cfg.room==="photo"&&!cfg.photo){ cfg.room="boardroom"; }
   rnd=mulberry32(cfg.seed*977+cfg.size+cfg.room.length);
   const want=[...new Set(Array.from({length:Math.min(cfg.size,pool.length)},(_,i)=>pool[(i*7+Math.floor(rnd()*pool.length))%pool.length].id))];
   if(cfg.skeptic){ const oldest=[...pool].sort((a,b)=>b.age-a.age)[0].id; if(!want.includes(oldest)) want.push(oldest); }
@@ -537,6 +572,7 @@ async function buildRoom(){
   SHADOWS=cfg.size<=36; renderer.shadowMap.enabled=SHADOWS;
   const r=builders[cfg.room](cfg.size);
   view.base.set(...r.eye); view.look.set(...r.look); view.yaw=view.tYaw=0; view.pitch=view.tPitch=0;
+  if(cfg.room==="photo") fitPhoto(); else resize();
   let skepticIdx=-1;
   if(cfg.skeptic){ let best=1e9; r.seats.forEach((s,i)=>{ const d=Math.hypot(s.x*1.5,s.z-view.base.z); if(d<best){best=d;skepticIdx=i;} }); }
   const castOf=id=>CAST.find(c=>c.id===id);
@@ -544,7 +580,9 @@ async function buildRoom(){
   let prev=null;
   people=r.seats.map((seat,i)=>{
     let id=ids[(i*5+Math.floor(rnd()*ids.length))%ids.length];
+    if(skepticIdx>=0&&id===oldest&&ids.length>2) id=ids[(ids.indexOf(id)+1)%ids.length];
     if(id===prev&&ids.length>1) id=ids[(ids.indexOf(id)+1)%ids.length];
+    if(skepticIdx>=0&&id===oldest&&ids.length>2) id=ids[(ids.indexOf(id)+1)%ids.length];
     if(i===skepticIdx) id=oldest; prev=id;
     const c=castOf(id), tpl=tpls[id];
     const holder=new THREE.Group(); holder.position.set(seat.x,seat.y,seat.z); holder.rotation.y=seat.ry; roomGroup.add(holder);
@@ -558,16 +596,18 @@ async function buildRoom(){
     const headY=seat.y+tpl.headY*sc, dist=Math.hypot(seat.x-view.base.x,seat.z-view.base.z);
     const sp={ name:c.name, age:c.age, role:pick(ROLES[cfg.room]),
       warmth:clamp(R(.3,.85)-(cfg.temper-.5)*.6), patience:clamp(R(.35,.95)-(cfg.temper-.5)*.4), interest:clamp(R(.4,.9)-(cfg.temper-.5)*.3),
-      expertise:clamp(cfg.expert+R(-.2,.2)), phoneProne:clamp((cfg.phones?.55:.12)*R(.5,1.5)+(c.age<30?.1:0)), skeptic:i===skepticIdx };
+      expertise:clamp(cfg.expert+R(-.2,.2)), phoneProne:clamp((cfg.phones?.55:.12)*R(.5,1.5)+(c.age<30?.1:0)+(cfg.temper>.9?.45:cfg.temper>.7?.15:0)), skeptic:i===skepticIdx };
     if(sp.skeptic) Object.assign(sp,{warmth:.12,patience:.3,interest:.45,expertise:clamp(cfg.expert+.35),phoneProne:.05});
     return { i, spec:sp, inst, holder, phone, dist, far:dist>16,
       spYaw:clamp(dy,-1.1,1.1), spPitch:clamp(Math.atan2(headY-view.base.y,dist),-.5,.5),
-      e:.55+sp.interest*.2, c:0, v:sp.warmth, state:"idle", stateUntil:0,
+      e:.55+sp.interest*.2, c:0, b:0, v:sp.warmth, state:"idle", stateUntil:0, hooked:false, nb:[], seat,
       s:{lean:0,pitch:0,yaw:0,roll:0,brow:0,furrow:0,smile:0,clap:0,phase:R(0,6.3)},
       t:{lean:0,pitch:0,yaw:0,roll:0,brow:0,furrow:0,smile:sp.warmth*.4,clap:0}, attend:0, tAttend:0,
       nod:0, nodT:0, blinkIn:R(1,4), sacc:{y:0,p:0,next:R(.5,2)}, look:{y:R(-.6,.6),p:R(-.1,.2)} };
   });
-  people.forEach(p=>{ if(p.spec.skeptic){ PodiumRig.setPose(p.inst,"crossed"); p.inst.t=1; } });
+  people.forEach(p=>{ PodiumRig.play(p.inst,pick(["breathe_01","idle_neutral_01","idle_waiting_01"]),{offset:rnd(),fade:.01}); if(p.spec.skeptic){ PodiumRig.setPose(p.inst,"crossed"); p.inst.w=1; p.inst.pose="crossed"; } });
+  // neighbours, for whispering, yawns and phones that spread
+  people.forEach(p=>{ p.nb=people.filter(q=>q!==p&&Math.hypot(q.seat.x-p.seat.x,q.seat.z-p.seat.z)<1.8).map(q=>q.i).slice(0,6); });
   $("#roomLabel").textContent=`${ROOMS[cfg.room].label} · ${people.length} ${people.length===1?"person":"people"}`;
   if(firstBuild){ firstBuild=false; setTimeout(()=>$("#veil").classList.add("gone"),300); }
 }
@@ -588,9 +628,8 @@ function animatePeople(dt,t,frame){
     const lookYaw=lerp(p.look.y,p.spYaw,p.attend), lookPitch=lerp(p.look.p,p.spPitch,p.attend);
     PodiumRig.apply(p.inst,{lean:s.lean+Math.sin(t*1.5+s.phase)*.012, pitch:lookPitch*.6+s.pitch+Math.sin(p.nodT*8)*p.nod, yaw:lookYaw*.75+s.yaw, roll:s.roll,
       eyeYaw:clamp(lookYaw*.25+p.sacc.y,-.35,.35), eyePitch:clamp(lookPitch*.3+p.sacc.p,-.3,.3), brow:s.brow, furrow:s.furrow, smile:s.smile,
-      blink:blinking?1:0, clap:s.clap, phase:s.phase},t);
-    p.inst.t=Math.min(1,p.inst.t+d*2.2);
-    p.phone.visible=p.inst.to==="phone"&&p.inst.t>.7;
+      blink:blinking?1:0, clap:s.clap, phase:s.phase},t,d);
+    p.phone.visible=PodiumRig.posed(p.inst)==="phone";
   }
 }
 
@@ -598,7 +637,7 @@ function animatePeople(dt,t,frame){
 const S={};
 function resetSession(){ Object.assign(S,{mode:"idle",source:null,t0:0,words:[],fillers:{},fillerCount:0,jargonUsed:{},rms:0,rmsAvg:.02,level:0,noise:.004,
   pitchHist:[],lastVoiced:0,runStart:0,longestRun:0,pauses:0,goodPauses:0,longPauses:0,lastEmph:0,emphasisCount:0,timeline:[],moments:[],events:[],
-  sig:{wpm:0,variety:null,fillerRate:0,ramble:0,offScript:0,jargon:0,fast:0,slow:0,monotone:0,energy:0,silence:0,clarity:1},cool:{},avgE:0,avgC:0,peakE:0,lowState:false,confState:false,lastJargon:null,wpmSamples:[],varietySamples:[],counts:{}}); }
+  sig:{wpm:0,variety:null,fillerRate:0,ramble:0,offScript:0,jargon:0,fast:0,slow:0,monotone:0,energy:0,silence:0,clarity:1},cool:{},avgE:0,avgC:0,peakE:0,lowState:false,confState:false,lastJargon:null,wpmSamples:[],varietySamples:[],counts:{},lastHook:0,firstPhone:null,maxPhones:0,yawns:0}); }
 resetSession();
 const elapsed=t=>(t-S.t0)/1000;
 function cool(key,ms){ const t=now(); if(S.cool[key]&&t-S.cool[key]<ms) return false; S.cool[key]=t; return true; }
@@ -629,8 +668,8 @@ function addAudio(t,rms,pitch){
   }
 }
 function onPause(gap){
-  if(gap>4500){ S.longPauses++; people.forEach(p=>{ if(rnd()<.4) p.tAttend=1; }); if(cool("long",15000)) note("pause",`A ${Math.round(gap/1000)}-second silence. Heads came up to check on you`); }
-  else if(gap>900&&S.sig.ramble<.2&&S.avgE>.45){ S.goodPauses++; people.forEach(p=>{ if(p.e>.5) p.t.lean=Math.min(.14,p.t.lean+.04); }); }
+  if(gap>4500){ S.longPauses++; people.forEach(p=>{ if(rnd()<.5){ p.tAttend=1; p.hooked=true; p.stateUntil=0; } }); if(cool("long",15000)) note("pause",`A ${Math.round(gap/1000)}-second silence. Heads came up to check on you`); }
+  else if(gap>900&&S.sig.ramble<.2){ S.goodPauses++; S.lastHook=now(); people.forEach(p=>{ p.b=Math.max(0,p.b-.06*(1-cfg.temper*.75)); if(p.e>.5) p.t.lean=Math.min(.14,p.t.lean+.04); }); }
 }
 function computeSignals(t){
   const el=t-S.t0, win=Math.min(20000,Math.max(el,5000)), sig=S.sig;
@@ -648,43 +687,73 @@ function computeSignals(t){
   if(speaking){ S.wpmSamples.push(sig.wpm); if(sig.variety!==null) S.varietySamples.push(sig.variety); }
 }
 
-/* ------------------------------------------------------------------ audience brain */
+/* ------------------------------------------------------------------ audience brain
+   Each person carries attention (e), confusion (c) and boredom (b). Boredom builds when delivery is dull
+   (flat voice, slow, rambling, fillers, nothing new for a while), faster for impatient people and tough rooms.
+   Hooks (emphasis, a deliberate pause, a long silence) knock it back. Phones come out past a threshold,
+   sooner when a neighbour already has one out, and stay out until something pulls them back. */
 function updateAudience(t){
-  const live=S.mode==="live", sig=S.sig, mins=(t-S.t0)/60000; let sE=0,sC=0,ph=0,cf=0,en=0;
+  const live=S.mode==="live", sig=S.sig, mins=(t-S.t0)/60000, tough=cfg.temper; let sE=0,sC=0,ph=0,cf=0,en=0,bo=0;
+  const sinceHook=(t-(S.lastHook||S.t0))/1000;
+  // a genuinely lively stretch (varied voice, recent emphasis, a good pace) wins people back, though tough rooms credit it less
+  const lively=live?((sig.variety===null?0:clamp((sig.variety-3)/4)*.35)+((t-S.lastEmph)<6000?.2:0)+(sig.wpm>=125&&sig.wpm<=165?.05:0))*(1-tough*.25):0;
+  const dull=live?clamp(sig.monotone*.55+sig.slow*.6+sig.ramble*.8+clamp(sig.fillerRate*5)*.45+sig.offScript*.25+(sinceHook>16?Math.min(.5,(sinceHook-16)/30):0)+(sig.silence>5000?.25:0)):0;
   for(const p of people){ const sp=p.spec; let tE,tC;
-    if(live){ const imp=1.15-sp.patience;
-      tE=.48+sp.interest*.32+(sp.warmth-.5)*.15+(sig.variety===null?0:clamp((sig.variety-3)/5,-.3,.3))*.6+(sig.energy-.5)*.25
-        -sig.monotone*.22*imp-sig.slow*.25-sig.ramble*.45*imp-sig.fillerRate*1.4*imp-sig.offScript*.15-mins*.05*(1-sp.patience)-(sig.silence>6000?.15:0)+(rnd()-.5)*.06;
-      tC=Math.min(1,sig.jargon)*(1-sp.expertise)*1.1+sig.fast*.85*(1.1-sp.expertise*.5)+sig.ramble*.55+sig.offScript*.3+(sp.skeptic?.08:0);
+    if(live){ const imp=1.15-sp.patience, rate=(.3+Math.pow(tough,1.5)*1.7)*imp;
+      // tough rooms drift even through a decent talk; you have to keep earning them back
+      p.b=clamp(p.b+(dull-lively-.22+Math.pow(tough,3)*.36)*.035*rate+mins*.0006*tough);
+      tE=.5+sp.interest*.32+(sp.warmth-.5)*.15+(sig.variety===null?0:clamp((sig.variety-3)/5,-.3,.3))*.5+(sig.energy-.5)*.2-p.b*.6-sig.fillerRate*.8*imp+(rnd()-.5)*.05;
+      tC=Math.min(1,sig.jargon)*(1-sp.expertise)*1.1+sig.fast*.85*(1.1-sp.expertise*.5)+sig.ramble*.5+sig.offScript*.3+(sp.skeptic?.08:0);
       if(sp.expertise>.7&&sig.slow>0) tE-=.15;
-    } else { tE=.5+sp.interest*.2; tC=0; }
-    p.e=lerp(p.e,clamp(tE),.07+(1-sp.patience)*.05); p.c=lerp(p.c,clamp(tC),tC>p.c?.25:.06); p.v=p.e-p.c*.4+(sp.warmth-.5)*.3;
-    sE+=p.e; sC+=p.c; if(t>p.stateUntil) choose(p,t,live);
-    if(p.state==="phone") ph++; if(p.state==="confused") cf++; if(p.state==="engaged") en++;
+    } else { p.b=Math.max(0,p.b-.02); tE=.5+sp.interest*.2; tC=0; }
+    p.e=lerp(p.e,clamp(tE),.07+(1-sp.patience)*.05); p.c=lerp(p.c,clamp(tC),tC>p.c?.25:.06); p.v=p.e-p.c*.4-p.b*.3+(sp.warmth-.5)*.3;
+    sE+=p.e; sC+=p.c; if(t>p.stateUntil||(p.state==="phone"&&p.hooked)) choose(p,t,live);
+    if(p.state==="phone") ph++; if(p.state==="confused") cf++; if(p.state==="engaged") en++; if(p.state==="bored") bo++;
   }
-  const n=people.length||1; S.avgE=sE/n; S.avgC=sC/n; S.counts={phones:ph,confused:cf,engaged:en};
+  const n=people.length||1; S.avgE=sE/n; S.avgC=sC/n; S.counts={phones:ph,confused:cf,engaged:en,bored:bo}; S.maxPhones=Math.max(S.maxPhones,ph);
   if(live) narrate(t);
 }
+const BASE={idle:["idle_neutral_01","breathe_01","idle_look_around"],listening:["breathe_01","idle_neutral_01"],engaged:["breathe_01"],drifting:["idle_look_around","idle_neutral_01"],bored:["idle_waiting_01"],"checked-out":["idle_waiting_01"],phone:["idle_neutral_01"],confused:["breathe_01"]};
 function choose(p,t,live){
   if(S.mode==="applause") return;
-  const sp=p.spec, g=p.t; let st;
-  if(!live) st="idle"; else if(p.c>.42) st="confused"; else if(p.e<.27) st=rnd()<sp.phoneProne*1.3?"phone":"checked-out";
-  else if(p.e<.42) st=rnd()<sp.phoneProne*.5?"phone":"drifting"; else if(p.e>.7) st="engaged"; else st="listening";
-  p.state=st; p.stateUntil=t+R(1200,3200);
+  const sp=p.spec, g=p.t, tough=cfg.temper, prev=p.state, nbPh=p.nb.filter(j=>people[j]&&people[j].state==="phone").length; let st;
+  if(!live) st="idle";
+  else if(prev==="phone"&&!(p.b<.42||(p.hooked&&rnd()<Math.max(.15,(1-tough)*.75)))) st="phone";
+  else if(p.b>.72-tough*.3-nbPh*.09&&rnd()<(sp.phoneProne+.12)*(.5+tough)) st="phone";
+  else if(p.c>.42&&p.b<.55) st="confused";
+  else if(p.b>.5) st="bored";
+  else if(p.e<.4) st="drifting";
+  else if(p.e>.7) st="engaged"; else st="listening";
+  p.hooked=false; p.state=st; p.stateUntil=t+(st==="phone"?R(4000,9000):R(1400,3400));
   g.roll=0; g.furrow=0; g.brow=0; g.pitch=0; g.yaw=0; let pose="lap";
   switch(st){
-    case "idle": p.tAttend=rnd()<.25?1:0; p.look={y:R(-.9,.9),p:R(-.05,.2)}; g.lean=R(-.08,.04); g.smile=sp.warmth*.7; if(rnd()<sp.phoneProne*.7){ pose="phone"; g.pitch=.5; p.tAttend=0; } break;
+    case "idle": p.tAttend=rnd()<.25?1:0; p.look={y:R(-.9,.9),p:R(-.05,.2)}; g.lean=R(-.06,.04); g.smile=sp.warmth*.7; if(rnd()<sp.phoneProne*.6){ pose="phone"; g.pitch=.5; p.tAttend=0; } break;
     case "engaged": p.tAttend=1; g.lean=R(.07,.14); g.smile=clamp(p.v)*.8; g.brow=.25; if(rnd()<.3) p.nod=Math.max(p.nod,.08); break;
     case "listening": p.tAttend=1; g.lean=R(-.02,.06); g.smile=clamp(p.v)*.4; break;
-    case "drifting": p.tAttend=0; p.look={y:pick([-1,1])*R(.35,.8),p:R(-.05,.12)}; g.lean=R(-.12,-.04); g.smile=.05; break;
+    case "drifting": p.tAttend=0; p.look={y:pick([-1,1])*R(.35,.8),p:R(-.05,.12)}; g.lean=R(-.1,-.03); g.smile=.05; break;
+    case "bored": p.tAttend=rnd()<.3?1:0; p.look={y:pick([-1,1])*R(.2,.6),p:R(.05,.25)}; g.lean=-.1; g.smile=0;
+      if(prev!=="bored"&&rnd()<.3) yawn(p); else if(p.nb.length&&rnd()<.15) whisper(p); break;
     case "checked-out": p.tAttend=0; p.look={y:pick([-1,1])*R(.15,.4),p:.3}; g.lean=-.12; g.smile=0; if(rnd()<.35) pose="crossed"; break;
     case "phone": p.tAttend=0; p.look={y:0,p:.2}; g.pitch=.5; g.lean=-.02; g.smile=0; pose="phone"; break;
-    case "confused": p.tAttend=1; g.roll=pick([-1,1])*R(.1,.17); g.furrow=1; g.lean=R(.02,.08); g.smile=0; if(rnd()<.35) pose="chin"; else if(rnd()<.3){ p.tAttend=0; p.look={y:pick([-1,1])*.5,p:0}; } break;
+    case "confused": p.tAttend=1; g.roll=pick([-1,1])*R(.1,.17); g.furrow=1; g.lean=R(.02,.08); g.smile=0;
+      if(prev!=="confused"){ const r=rnd(); if(r<.3) PodiumRig.play(p.inst,"idle_scratch_head",{once:true}); else if(r<.5) PodiumRig.play(p.inst,"gestic_thoughtful",{once:true}); else if(r<.62) PodiumRig.play(p.inst,"gestic_shrug_01",{once:true}); else if(r<.8) pose="chin"; } break;
   }
-  if(sp.skeptic&&st!=="engaged"){ pose="crossed"; g.smile=0; g.lean=-.06; g.furrow=Math.max(g.furrow,.35); }
+  if(sp.skeptic&&st!=="engaged"&&st!=="phone"){ pose="crossed"; g.smile=0; g.lean=-.06; g.furrow=Math.max(g.furrow,.35); }
   PodiumRig.setPose(p.inst,pose);
+  if(st!==prev||!p.inst.current) PodiumRig.play(p.inst,pick(BASE[st]||BASE.listening));
+  if(st===prev&&rnd()<.04) PodiumRig.play(p.inst,pick(["idle_touch_face","idle_cough","idle_roll_head"]),{once:true});
 }
-function reactEmphasis(){ let n=0; for(const p of people){ if((p.state==="engaged"||p.state==="listening")&&rnd()<p.e){ n++; setTimeout(()=>{ p.nod=Math.max(p.nod,R(.07,.13)); p.nodT=0; },R(150,750)); } }
+function yawn(p,spread=true){ if(!PodiumRig.play(p.inst,"idle_yawn",{once:true})) return; S.yawns++; p.tAttend=0;
+  if(spread) p.nb.forEach(j=>{ const q=people[j]; if(q&&q.b>.3&&rnd()<.3) setTimeout(()=>yawn(q,false),R(1500,4000)); });
+  if(S.mode==="live"&&cool("yawn",20000)) note("warn",`${p.spec.name} yawned`); }
+function whisper(p){ const q=people[pick(p.nb)]; if(!q) return; const dir=(q.seat.x-p.seat.x)>0?1:-1;
+  p.tAttend=0; p.look={y:dir*.9,p:.05}; p.t.lean=.06; if(q.state!=="phone"){ q.tAttend=0; q.look={y:-dir*.9,p:.05}; q.stateUntil=now()+2500; }
+  if(S.mode==="live"&&cool("whisper",20000)) note("warn",`${p.spec.name} leaned over to whisper to ${q.spec.name}`); }
+function reactEmphasis(){ let n=0; S.lastHook=now();
+  for(const p of people){
+    if(p.state==="phone"){ if(rnd()<.35*(1-cfg.temper)+.1){ p.hooked=true; p.b=Math.max(0,p.b-.06); } continue; }
+    p.b=Math.max(0,p.b-(p.state==="bored"?.08:.12)*(1-cfg.temper*.75));
+    if((p.state==="engaged"||p.state==="listening")&&rnd()<p.e){ n++; setTimeout(()=>{ p.nod=Math.max(p.nod,R(.07,.13)); p.nodT=0; },R(150,750)); } }
   if(n>=Math.max(3,people.length*.25)&&cool("nods",9000)) note("good",`Your emphasis landed and ${n} ${n===1?"person":"people"} nodded`); }
 function reactJargon(w){ setTimeout(()=>{ const c=people.filter(p=>p.spec.expertise<.55); c.forEach(p=>{ if(rnd()<.6){ p.c=Math.min(1,p.c+.35); p.stateUntil=0; } });
   if(c.length&&cool("j"+w,20000)&&cool("jargon",7000)) note("puzzle",`“${w}” lost about ${Math.max(1,Math.round(c.length*.6))} ${c.length*.6<1.5?"person":"people"}`); },R(500,900)); }
@@ -693,14 +762,15 @@ function narrate(t){
   if(sig.ramble>.45&&cool("ramble",15000)) note("warn",`${S.words.length-S.runStart} words without a real pause, and attention started to drift`);
   if(sig.fast>.35&&cool("fast",15000)) note("warn",`You sped up to ${Math.round(sig.wpm)} words a minute`);
   if(sig.monotone>.7&&sig.silence<1500&&cool("mono",18000)) note("warn","Your voice went flat for a stretch");
-  if(c.phones>=Math.max(3,n*.12)&&cool("phones",16000)) note("bad",`${c.phones} people reached for their phones`);
+  if(c.phones>0&&S.firstPhone===null){ S.firstPhone=el; S.moments.push({t:el,text:"The first phone came out",snippet,cause:causeOf(sig)}); }
+  if(c.phones>=Math.max(3,n*.15)&&cool("phones",16000)) note("bad",`${c.phones} people were on their phones`);
   if(!S.lowState&&S.avgE<.42){ S.lowState=true; S.moments.push({t:el,text:`Attention dipped to ${Math.round(S.avgE*100)}%`,snippet,cause:causeOf(sig)}); }
   if(S.lowState&&S.avgE>.52) S.lowState=false;
   if(!S.confState&&S.avgC>.3){ S.confState=true; S.moments.push({t:el,text:"The room looked puzzled",snippet,cause:causeOf(sig)}); }
   if(S.confState&&S.avgC<.15) S.confState=false;
   if(S.avgE>S.peakE+.03&&S.avgE>.66&&el>8){ S.peakE=S.avgE; S.moments=S.moments.filter(m=>!m.peak); S.moments.push({t:el,peak:true,text:`The room was most with you here, at ${Math.round(S.avgE*100)}%`,snippet}); }
 }
-function causeOf(sig){ const c=[]; if(sig.ramble>.3) c.push("a long stretch with no pause"); if(sig.fast>.2) c.push(`${Math.round(sig.wpm)} words a minute`); if(sig.jargon>.3&&S.lastJargon) c.push(`jargon like “${S.lastJargon.w}”`); if(sig.fillerRate>.1) c.push("filler words"); if(sig.monotone>.6) c.push("a flat voice"); if(sig.offScript>.5) c.push("going off script"); return c.join(", ")||"gradual fatigue"; }
+function causeOf(sig){ const c=[]; if(sig.ramble>.3) c.push("a long stretch with no pause"); if(sig.fast>.2) c.push(`${Math.round(sig.wpm)} words a minute`); if(sig.jargon>.3&&S.lastJargon) c.push(`jargon like “${S.lastJargon.w}”`); if(sig.fillerRate>.1) c.push("filler words"); if(sig.monotone>.6) c.push("a flat voice"); if(sig.offScript>.5) c.push("going off script"); if(!c.length&&S.lastHook&&(now()-S.lastHook)>20000) c.push("a long stretch with nothing new to grab them"); return c.join(", ")||"gradual fatigue"; }
 
 /* ------------------------------------------------------------------ inputs */
 let audio=null, recog=null, demo=null;
@@ -737,7 +807,8 @@ let savedScript=null;
 function begin(source){
   resetSession(); S.mode="live"; S.source=source; S.t0=now();
   prompterReset();
-  people.forEach(p=>{ p.stateUntil=now()+R(200,1600); p.state="listening"; p.tAttend=1; p.e=.55+p.spec.interest*.25; if(!p.spec.skeptic) PodiumRig.setPose(p.inst,"lap"); });
+  S.lastHook=now();
+  people.forEach(p=>{ p.stateUntil=now()+R(200,1600); p.state="listening"; p.tAttend=1; p.b=0; p.e=.55+p.spec.interest*.25; if(!p.spec.skeptic) PodiumRig.setPose(p.inst,"lap"); PodiumRig.play(p.inst,"breathe_01"); });
   $("#idleCtl").hidden=true; $("#liveCtl").hidden=false; $("#card").hidden=true; setSetup(false); wake(true);
 }
 function endSession(){
@@ -779,14 +850,16 @@ const check='<svg class="i check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L1
 const venues=$("#venues");
 for(const [k,r] of Object.entries(ROOMS)){ const b=document.createElement("button"); b.className="row"; b.dataset.room=k; b.setAttribute("aria-pressed",k===cfg.room);
   b.innerHTML=`<span class="grow">${r.label}</span><small>${r.min}–${r.max}</small>${check}`;
-  b.onclick=()=>{ if(S.mode==="live") return toast("Finish this rehearsal before changing rooms."); cfg.room=k; cfg.size=r.def; const sz=$("#size"); sz.min=r.min; sz.max=r.max; sz.value=r.def; sizeLabel();
-    venues.querySelectorAll(".row").forEach(x=>x.setAttribute("aria-pressed",x.dataset.room===k)); rebuildSoon(); };
+  if(k==="photo") b.innerHTML=`<span class="grow">${r.label}</span><small>From a photo</small>${check}`;
+  b.onclick=()=>{ if(S.mode==="live") return toast("Finish this rehearsal before changing rooms."); if(k==="photo"&&!cfg.photo) return $("#photoFile").click(); selectRoom(k); };
   venues.appendChild(b); }
+function selectRoom(k){ const r=ROOMS[k]; { cfg.room=k; cfg.size=r.def; const sz=$("#size"); sz.min=r.min; sz.max=r.max; sz.value=r.def; sizeLabel();
+    venues.querySelectorAll(".row").forEach(x=>x.setAttribute("aria-pressed",x.dataset.room===k)); $("#photoPanel").hidden=k!=="photo"; rebuildSoon(); } }
 let rebuildTimer; function rebuildSoon(){ clearTimeout(rebuildTimer); rebuildTimer=setTimeout(buildRoom,180); }
 function sizeLabel(){ $("#sizeOut").textContent=`${cfg.size} people`; }
 $("#size").oninput=e=>{ cfg.size=+e.target.value; sizeLabel(); if(S.mode!=="live") rebuildSoon(); };
 function segGroup(id,fn){ const g=$(id); g.querySelectorAll("button").forEach(b=>b.onclick=()=>{ g.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",x===b)); fn(b.dataset.v); }); }
-segGroup("#mood",v=>{ cfg.temper=+v; if(S.mode!=="live") rebuildSoon(); });
+segGroup("#mood",v=>{ cfg.temper=+v; $("#moodHint").textContent=MOOD_HINTS[v]||""; if(S.mode!=="live") rebuildSoon(); });
 segGroup("#know",v=>{ cfg.expert=+v; if(S.mode!=="live") rebuildSoon(); });
 $("#phones").onchange=e=>{ cfg.phones=e.target.checked; if(S.mode!=="live") rebuildSoon(); };
 $("#skeptic").onchange=e=>{ cfg.skeptic=e.target.checked; if(S.mode!=="live") rebuildSoon(); };
@@ -830,7 +903,69 @@ let dragDepth=0;
 addEventListener("dragenter",e=>{ if([...(e.dataTransfer?.types||[])].includes("Files")){ dragDepth++; $("#drop").hidden=false; } });
 addEventListener("dragleave",()=>{ if(--dragDepth<=0){ dragDepth=0; $("#drop").hidden=true; } });
 addEventListener("dragover",e=>e.preventDefault());
-addEventListener("drop",e=>{ e.preventDefault(); dragDepth=0; $("#drop").hidden=true; const f=e.dataTransfer.files[0]; if(f) importFile(f); });
+addEventListener("drop",e=>{ e.preventDefault(); dragDepth=0; $("#drop").hidden=true; const f=e.dataTransfer.files[0]; if(!f) return; if(/^image\//.test(f.type)) loadPhoto(f); else importFile(f); });
+
+/* your own room, from a photo */
+function toCanvas(img,max){ const w=img.naturalWidth||img.width, h=img.naturalHeight||img.height, k=Math.min(1,max/Math.max(w,h)), c=document.createElement("canvas"); c.width=Math.round(w*k); c.height=Math.round(h*k); c.getContext("2d").drawImage(img,0,0,c.width,c.height); return c; }
+function avgColor(c){ const t=document.createElement("canvas"); t.width=t.height=24; const g=t.getContext("2d"); g.drawImage(c,0,0,24,24); const d=g.getImageData(0,0,24,24).data; let r=0,gg=0,b=0; for(let i=0;i<d.length;i+=4){ r+=d[i]; gg+=d[i+1]; b+=d[i+2]; } const n=d.length/4; return [r/n,gg/n,b/n]; }
+const PHOTO_DEFAULTS={horizon:.45,hfov:66,d0:2.6,width:7,centerX:0,light:"above",warmth:.5,brightness:.6,chair:"theater",summary:""};
+const PHOTO_KEYS=Object.keys(PHOTO_DEFAULTS);
+function setPhoto(c,opts,select=true){
+  const tex=new THREE.CanvasTexture(c); tex.encoding=THREE.sRGBEncoding;
+  if(cfg.photo&&cfg.photo.tex) cfg.photo.tex.dispose();
+  cfg.photo=Object.assign({},PHOTO_DEFAULTS,opts,{tex,aspect:c.width/c.height,avg:avgColor(c),canvas:c});
+  $("#photoThumb").src=toCanvas(c,240).toDataURL("image/jpeg",.8); syncPhotoUI();
+  if(select) selectRoom("photo");
+}
+function savePhoto(){ try{ const o={}; PHOTO_KEYS.forEach(k=>o[k]=cfg.photo[k]); store.set("podium.photoOpts",JSON.stringify(o)); store.set("podium.photo",toCanvas(cfg.photo.canvas,1280).toDataURL("image/jpeg",.82)); }catch(e){} }
+function syncPhotoUI(){ const ph=cfg.photo; if(!ph) return;
+  $("#pHorizon").value=Math.round(ph.horizon*100); $("#pHorizonOut").textContent=`${Math.round(ph.horizon*100)}% down`;
+  $("#pRow").value=Math.round(ph.d0*10); $("#pRowOut").textContent=`${ph.d0.toFixed(1)} m away`;
+  $("#pWidth").value=Math.round(ph.width); $("#pWidthOut").textContent=`${Math.round(ph.width)} m`;
+  $("#photoNote").textContent=ph.summary||"Slide eye level until it matches the room’s horizon."; }
+async function loadPhoto(file){
+  if(!/^image\//.test(file.type)) return toast("Choose a photo: JPEG, PNG or WebP.");
+  const url=URL.createObjectURL(file), img=new Image(); img.src=url;
+  try{ await img.decode(); }catch(e){ URL.revokeObjectURL(url); return toast("That photo couldn't be opened. Try a JPEG or PNG."); }
+  const c=toCanvas(img,2048); URL.revokeObjectURL(url);
+  setPhoto(c,{}); savePhoto(); readRoom(c);
+}
+const ROOM_PROMPT=`This photo shows a room where someone will rehearse a talk, taken from roughly where the speaker will stand. A 3D seated audience will be drawn over the photo, so estimate the camera and the room well enough for the audience to line up with it.
+Reply with only JSON like {"kind":"lecture hall","horizon":0.46,"hfov":66,"firstRow":2.5,"width":8,"centerX":0,"capacity":40,"seating":"rows","light":"left","warmth":0.6,"brightness":0.7,"summary":"A bright lecture hall with wooden tiered seating."}
+horizon: where eye level (the line the floor and ceiling converge toward) sits, as a fraction of the image height from the top.
+hfov: the photo's horizontal field of view in degrees.
+firstRow: metres from the camera to where the first row of seated people should go, on open floor.
+width: usable floor width for seating, in metres.
+centerX: metres left (negative) or right (positive) of the camera that the seating area is centred on.
+capacity: how many seated people fit comfortably.
+seating: one of rows, table, round tables, open floor.
+light: main light direction as seen from the camera: left, right, front, behind or above.
+warmth and brightness: 0 to 1.
+summary: one plain sentence describing the room for the speaker.`;
+async function readRoom(c){
+  const note=$("#photoNote");
+  if(!sampleFn){ note.textContent="Slide eye level until it matches the room’s horizon."; return; }
+  const lim=await sampleFn.limits().catch(()=>null);
+  if(!lim||!lim.images){ note.textContent="Slide eye level until it matches the room’s horizon."; return; }
+  note.textContent="Claude is reading your room…";
+  const blob=await new Promise(r=>toCanvas(c,1568).toBlob(r,"image/jpeg",.86));
+  try{
+    const j=await sampleFn.json(ROOM_PROMPT,{images:[blob],modelTier:"default"}), ph=cfg.photo; if(!ph||ph.canvas!==c) return;
+    const num=(v,a,b,d)=>Number.isFinite(+v)?clamp(+v,a,b):d, words=(String(j.seating||"")+" "+String(j.kind||"")).toLowerCase();
+    Object.assign(ph,{horizon:num(j.horizon,.1,.9,ph.horizon),hfov:num(j.hfov,40,100,ph.hfov),d0:num(j.firstRow,1.2,8,ph.d0),width:num(j.width,3,20,ph.width),centerX:num(j.centerX,-5,5,0),
+      light:["left","right","front","behind","above"].includes(j.light)?j.light:"above",warmth:num(j.warmth,0,1,.5),brightness:num(j.brightness,0,1,.6),
+      chair:/table|board|meeting|conference/.test(words)?"office":/round|banquet|wedding|ballroom|dinner/.test(words)?"banquet":/class/.test(words)?"school":"theater",
+      summary:String(j.summary||"").slice(0,180)});
+    const cap=Math.round(num(j.capacity,3,60,cfg.size)); if(cap<cfg.size){ cfg.size=cap; $("#size").value=cap; sizeLabel(); }
+    syncPhotoUI(); savePhoto(); if(cfg.room==="photo") rebuildSoon();
+  }catch(e){ note.textContent=e&&e.code==="not_granted"?"Slide eye level until it matches the room’s horizon.":"Claude couldn’t read this photo. Slide eye level until it matches the horizon."; }
+}
+$("#photoFile").onchange=e=>{ const f=e.target.files[0]; if(f) loadPhoto(f); e.target.value=""; };
+$("#bPhoto").onclick=()=>$("#photoFile").click();
+$("#pHorizon").oninput=e=>{ if(!cfg.photo) return; cfg.photo.horizon=e.target.value/100; syncPhotoUI(); if(cfg.room==="photo") fitPhoto(); savePhoto(); };
+$("#pRow").oninput=e=>{ if(!cfg.photo) return; cfg.photo.d0=e.target.value/10; syncPhotoUI(); savePhoto(); rebuildSoon(); };
+$("#pWidth").oninput=e=>{ if(!cfg.photo) return; cfg.photo.width=+e.target.value; syncPhotoUI(); savePhoto(); rebuildSoon(); };
+(function restorePhoto(){ const d=store.get("podium.photo"); if(!d) return; const img=new Image(); img.onload=()=>{ let o={}; try{ o=JSON.parse(store.get("podium.photoOpts")||"{}"); }catch(e){} setPhoto(toCanvas(img,2048),o,false); }; img.src=d; })();
 
 /* chrome */
 function setSetup(open){ $("#setup").classList.toggle("closed",!open); $("#bSetup").setAttribute("aria-pressed",open); document.body.classList.toggle("setup-open",open); }
@@ -852,7 +987,7 @@ $("#bClose").onclick=backToRoom; $("#bAgain").onclick=backToRoom;
 /* look around + person card */
 let drag=null;
 canvas.addEventListener("pointerdown",e=>{ drag={x:e.clientX,y:e.clientY,yaw:view.tYaw,pitch:view.tPitch,moved:false}; canvas.setPointerCapture(e.pointerId); });
-canvas.addEventListener("pointermove",e=>{ if(!drag) return; const dx=e.clientX-drag.x,dy=e.clientY-drag.y; if(Math.abs(dx)+Math.abs(dy)>4) drag.moved=true; view.tYaw=clamp(drag.yaw-dx*.004,-1.1,1.1); view.tPitch=clamp(drag.pitch-dy*.003,-.4,.35); });
+canvas.addEventListener("pointermove",e=>{ if(!drag||cfg.room==="photo") return; const dx=e.clientX-drag.x,dy=e.clientY-drag.y; if(Math.abs(dx)+Math.abs(dy)>4) drag.moved=true; view.tYaw=clamp(drag.yaw-dx*.004,-1.1,1.1); view.tPitch=clamp(drag.pitch-dy*.003,-.4,.35); });
 canvas.addEventListener("pointerup",e=>{ if(drag&&!drag.moved) pickPerson(e); drag=null; });
 const ray=new THREE.Raycaster(), ndc=new THREE.Vector2(), _hp=new THREE.Vector3(); let inspected=null;
 function pickPerson(e){ ndc.set(e.clientX/innerWidth*2-1,-(e.clientY/innerHeight)*2+1); ray.setFromCamera(ndc,camera);
@@ -860,7 +995,7 @@ function pickPerson(e){ ndc.set(e.clientX/innerWidth*2-1,-(e.clientY/innerHeight
   let best=null,bd=.4; for(const p of people){ for(const b of [p.inst.B.Head,p.inst.B.Spine2]){ if(!b) continue; b.getWorldPosition(_hp); const d=ray.ray.distanceToPoint(_hp); if(d<bd){bd=d;best=p;} } }
   inspected=best; const c=$("#card"); if(!inspected||document.body.classList.contains("ui-hidden")){ c.hidden=true; return; }
   c.style.left=Math.min(innerWidth-236,e.clientX+14)+"px"; c.style.top=Math.max(70,Math.min(innerHeight-200,e.clientY-30))+"px"; c.hidden=false; renderCard(); }
-const thoughts={idle:"Settling in before you start",listening:"Following along",engaged:"Interested and leaning in",drifting:"Mind is wandering","checked-out":"Has stopped listening",phone:"Checking their phone",confused:"Lost the thread",applause:"Applauding"};
+const thoughts={idle:"Settling in before you start",listening:"Following along",engaged:"Interested and leaning in",drifting:"Mind is wandering",bored:"Bored and fidgeting","checked-out":"Has stopped listening",phone:"Checking their phone",confused:"Lost the thread",applause:"Applauding"};
 function renderCard(){ if(!inspected) return; const p=inspected, s=p.spec, st=S.mode==="applause"?"applause":p.state;
   $("#card").innerHTML=`<div><b>${esc(s.name)}</b><div class="sub">${esc(s.role)} · ${s.age}${s.skeptic?" · skeptic":""}</div></div><div class="sub" style="color:var(--ink)">${thoughts[st]||""}</div>
   <div class="meter"><span>Attention</span><div class="bar"><i style="width:${Math.round(p.e*100)}%;background:var(--attn)"></i></div><span>Confusion</span><div class="bar"><i style="width:${Math.round(p.c*100)}%;background:var(--clay)"></i></div></div>`; }
@@ -885,6 +1020,7 @@ function showReport(){
   const mom=all.filter(m=>{ const k=Math.round(m.t/6); if(seen.has(k)) return false; seen.add(k); return true; }).slice(0,6);
   $("#rMoments").innerHTML=mom.length?mom.map(m=>`<li><time>${fmtT(m.t)}</time><div>${esc(m.text)}${m.cause?`, after ${esc(m.cause)}`:""}.${m.snippet?`<q>“…${esc(m.snippet)}”</q>`:""}</div></li>`).join(""):`<li><time></time><div>The room stayed steady the whole way through.</div></li>`;
   const tips=[];
+  if(S.firstPhone!==null) tips.push(["Keep them off their phones.",` The first phone came out at ${fmtT(S.firstPhone)}${S.maxPhones>1?`, and ${S.maxPhones} were out at once at the worst point`:""}. Change your pace, ask the room a question or tell a short story every 30 seconds or so.`]);
   if(S.longestRun>45) tips.push(["Breathe between ideas.",` Your longest stretch ran ${S.longestRun} words without a pause. Land a point, then let it sit for a beat.`]);
   if(wpm>170) tips.push(["Slow down.",` You averaged ${Math.round(wpm)} words a minute; 130 to 160 is easiest for a live room.`]);
   if(wpm&&wpm<115) tips.push(["Pick up the pace a little.",` At ${Math.round(wpm)} words a minute, attention has room to wander.`]);
@@ -894,9 +1030,10 @@ function showReport(){
   if(S.emphasisCount>=3) tips.push(["Keep your emphasis.",` ${S.emphasisCount} stressed words drew nods. That's the delivery to build on.`]);
   if(!tips.length) tips.push(["Raise the stakes."," Try a tougher crowd or a bigger room next time."]);
   $("#rTips").innerHTML=tips.slice(0,4).map(([a,b])=>`<li><b>${esc(a)}</b>${esc(b)}</li>`).join("");
-  lastReport={score,dur,wpm,variety,fpm,fillers:S.fillers,avgE,longestRun:S.longestRun,jargon,moments:mom,transcript:S.words.map(w=>w.raw).join(" "),room:ROOMS[cfg.room].label,size:people.length,temper:cfg.temper,expert:cfg.expert};
+  lastReport={score,dur,wpm,variety,fpm,fillers:S.fillers,avgE,longestRun:S.longestRun,jargon,moments:mom,firstPhone:S.firstPhone,maxPhones:S.maxPhones,yawns:S.yawns,transcript:S.words.map(w=>w.raw).join(" "),room:ROOMS[cfg.room].label,size:people.length,temper:cfg.temper,expert:cfg.expert};
   $("#coach").hidden=true; $("#coach").textContent="";
   $("#report").hidden=false; $("#report").scrollTop=0; requestAnimationFrame(()=>drawChart(-1));
+  if(sampleFn) runCoach(false);
 }
 function summaryLine(e,wpm,v,fpm){ const good=[],bad=[]; if(e>.6) good.push("kept the room with you"); else if(e<.45) bad.push("lost people in places");
   if(wpm>=125&&wpm<=165) good.push("held a comfortable pace"); else if(wpm>165) bad.push("rushed at times"); if(v>=3.5) good.push("sounded lively"); else if(v&&v<2.6) bad.push("sounded flat"); if(fpm>3) bad.push("leaned on filler words");
@@ -927,15 +1064,17 @@ addEventListener("resize",()=>{ if(!$("#report").hidden) drawChart(-1); });
 /* coaching from Claude, available when the page runs inside claude.ai */
 let sampleFn=null;
 if(window.claude?.use){ window.claude.use("sample").then(s=>{ sampleFn=s; if(s) $("#coachCard").hidden=false; }).catch(()=>{}); }
-$("#bCoach").onclick=async()=>{ if(!sampleFn||!lastReport) return; const out=$("#coach"), r=lastReport; out.hidden=false; out.textContent="Thinking…"; $("#bCoach").disabled=true;
+async function runCoach(fresh){ if(!sampleFn||!lastReport) return; const out=$("#coach"), r=lastReport; out.hidden=false; out.textContent="Claude is reading your talk…"; $("#bCoach").disabled=true;
   const prompt=`You are a warm, direct public-speaking coach. A speaker rehearsed in a simulated ${r.room} with ${r.size} people (toughness ${Math.round(r.temper*100)}/100, topic knowledge ${Math.round(r.expert*100)}/100).
-Measured: score ${r.score}/100, ${Math.round(r.dur)} s, median ${Math.round(r.wpm)} wpm, pitch range ${r.variety?r.variety.toFixed(1):"n/a"} semitones, fillers ${r.fpm.toFixed(1)}/min ${JSON.stringify(r.fillers)}, longest unbroken run ${r.longestRun} words, average attention ${Math.round(r.avgE*100)}%, jargon: ${r.jargon.join(", ")||"none"}.
+Measured: score ${r.score}/100, ${Math.round(r.dur)} s, median ${Math.round(r.wpm)} wpm, pitch range ${r.variety?r.variety.toFixed(1):"n/a"} semitones, fillers ${r.fpm.toFixed(1)}/min ${JSON.stringify(r.fillers)}, longest unbroken run ${r.longestRun} words, average attention ${Math.round(r.avgE*100)}%, jargon: ${r.jargon.join(", ")||"none"}, first phone out at ${r.firstPhone===null?"never":fmtT(r.firstPhone)}, most phones out at once ${r.maxPhones}, yawns ${r.yawns}.
 Moments: ${r.moments.map(m=>`${fmtT(m.t)} ${m.text} while saying "${m.snippet}"`).join("; ")||"none"}.
 Transcript (speech recognition, may have errors): """${r.transcript.slice(0,6000)}"""
 Write: a two-sentence overall read; the three highest-impact fixes, each quoting a line from the transcript and giving a rewrite; one thing to keep doing. Plain text, no headings or markdown, under 260 words.`;
-  try{ await sampleFn(prompt,{onText:({text})=>{ out.textContent=text; },modelTier:"default"}); }
-  catch(e){ out.textContent=e&&e.code==="rate_limited"?"Claude is busy. Try again in a minute.":"Coaching isn't available in this view."; }
-  finally{ $("#bCoach").disabled=false; } };
+  const opts={onText:({text})=>{ out.textContent=text; },modelTier:"default"}; if(fresh) opts.cache=false;
+  try{ await sampleFn(prompt,opts); $("#bCoach").textContent="Ask again"; }
+  catch(e){ out.textContent=e&&e.code==="rate_limited"?"Claude is busy. Try again in a minute.":e&&e.code==="not_granted"?"Allow Claude to read your talk to get coaching here.":"Coaching isn't available in this view."; }
+  finally{ $("#bCoach").disabled=false; } }
+$("#bCoach").onclick=()=>runCoach(true);
 
 /* ------------------------------------------------------------------ loop */
 let last=now(), acc=0, poll=0, tlAcc=0, frameNo=0, wakeLock=null;
@@ -943,14 +1082,14 @@ async function wake(on){ try{ if(on&&navigator.wakeLock) wakeLock=await navigato
 const levelBars=[...document.querySelectorAll("#level b")];
 const _dir=new THREE.Vector3(), _up=new THREE.Vector3(0,1,0), _tgt=new THREE.Vector3();
 function frame(){
-  const t=now(), dt=Math.min(.05,(t-last)/1000); last=t; frameNo++;
+  const t=now(), dt=Math.min(window.__podiumDtCap||.05,(t-last)/1000); last=t; frameNo++;
   if(S.mode==="live"){ poll+=dt; if(poll>=.05){ poll=0; if(S.source==="mic"&&audio) pollMic(t); else if(demo) pollDemo(t); }
     tlAcc+=dt; if(tlAcc>=1){ tlAcc=0; S.timeline.push({t:elapsed(t),e:S.avgE,c:S.avgC,text:S.words.slice(-8).map(w=>w.raw).join(" ")}); }
     $("#clock").textContent=fmtT(elapsed(t)); levelBars.forEach((b,i)=>b.style.height=(4+clamp(S.level*1.4-i*.12)*12)+"px"); }
-  acc+=dt; if(acc>=.25){ acc=0; if(S.mode==="live") computeSignals(t); updateAudience(t); if(inspected&&!$("#card").hidden) renderCard(); }
+  acc+=dt; let steps=0; while(acc>=.25&&steps<8){ acc-=.25; steps++; if(S.mode==="live") computeSignals(t); updateAudience(t); } if(acc>=.25) acc=0; if(steps&&inspected&&!$("#card").hidden) renderCard();
   animatePeople(dt,t/1000,frameNo); prompterTick(dt);
   view.yaw=lerp(view.yaw,view.tYaw,1-Math.exp(-dt*6)); view.pitch=lerp(view.pitch,view.tPitch,1-Math.exp(-dt*6));
-  camera.position.copy(view.base); camera.position.x+=Math.sin(t/1900)*.01; camera.position.y+=Math.sin(t/2600)*.005;
+  camera.position.copy(view.base); if(cfg.room!=="photo"){ camera.position.x+=Math.sin(t/1900)*.01; camera.position.y+=Math.sin(t/2600)*.005; }
   _dir.subVectors(view.look,view.base); const len=_dir.length(); _dir.normalize().applyAxisAngle(_up,view.yaw); _dir.y+=view.pitch;
   camera.lookAt(_tgt.copy(camera.position).addScaledVector(_dir,len));
   renderer.render(scene,camera); requestAnimationFrame(frame);
