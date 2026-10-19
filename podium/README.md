@@ -33,4 +33,5 @@ python3 -m http.server 8000
 - `anims/`: seated motion-capture clips from Rocketbox for men (`m.json`) and women (`f.json`), in a compact keyframe format.
 - `tools/`: the scripts that converted the Rocketbox FBX files (they expect a Rocketbox checkout at `/tmp/rb`).
 - `avatars/`: 26 people from the [Microsoft Rocketbox](https://github.com/microsoft/Microsoft-Rocketbox) library (MIT licence, see `avatars/LICENSE-Rocketbox.md`). They are converted to compressed glTF with 1024px face textures, about 700 KB each.
+- `live/`: photoreal mode, with live front-row faces (LivePortrait on Modal) and recorded photoreal clips for everyone else (generated with fal). See `live/README.md`.
 - `ARCHITECTURE.md`: what it would take to go from here to photoreal humans, and the production APIs for real-time listening.

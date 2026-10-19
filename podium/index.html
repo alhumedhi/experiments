@@ -233,6 +233,8 @@ textarea{width:100%;box-sizing:border-box;min-height:160px;border:0;border-top:1
       <div class="stack"><span>Knows the topic</span><div class="seg" id="know" role="group" aria-label="Knows the topic"><button data-v="0.15" aria-pressed="true">A little</button><button data-v="0.45">Somewhat</button><button data-v="0.8">Experts</button></div></div>
       <label class="row"><span class="grow">Phones out</span><span class="switch"><input type="checkbox" id="phones"><span></span></span></label>
       <label class="row"><span class="grow">Skeptic in the front row</span><span class="switch"><input type="checkbox" id="skeptic" checked><span></span></span></label>
+      <label class="row"><span class="grow">Photoreal people<small style="display:block">Auditorium and lecture hall</small></span><span class="switch"><input type="checkbox" id="photoreal"><span></span></span></label>
+      <div class="stack" id="liveRow" hidden><label for="liveUrl">Podium live server</label><input id="liveUrl" type="url" placeholder="https://you--podium-live-live-web.modal.run" style="border:0;border-radius:8px;background:var(--fill);padding:8px 10px;font-size:13px"><span class="hint" id="liveStatus" style="padding:0"></span></div>
     </div>
 
     <div class="label">People <div class="seg small" id="preset" role="group" aria-label="Dress"><button data-v="business">Business</button><button data-v="all" aria-pressed="true">Mixed</button><button data-v="casual">Casual</button></div></div>
@@ -301,6 +303,7 @@ textarea{width:100%;box-sizing:border-box;min-height:160px;border:0;border-top:1
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/utils/SkeletonUtils.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/environments/RoomEnvironment.js"></script>
 <script src="rig.js"></script>
+<script src="live/live.js"></script>
 <script>
 "use strict";
 const $=s=>document.querySelector(s);
@@ -561,13 +564,15 @@ async function buildRoom(){
   const pool=CAST.filter(c=>cfg.pool.has(c.id)); if(!pool.length) return;
   if(cfg.room==="photo"&&!cfg.photo){ cfg.room="boardroom"; }
   rnd=mulberry32(cfg.seed*977+cfg.size+cfg.room.length);
-  const want=[...new Set(Array.from({length:Math.min(cfg.size,pool.length)},(_,i)=>pool[(i*7+Math.floor(rnd()*pool.length))%pool.length].id))];
+  const photoreal=window.PodiumLive&&PodiumLive.usable(cfg.room);
+  const want=photoreal?[]:[...new Set(Array.from({length:Math.min(cfg.size,pool.length)},(_,i)=>pool[(i*7+Math.floor(rnd()*pool.length))%pool.length].id))];
   if(cfg.skeptic){ const oldest=[...pool].sort((a,b)=>b.age-a.age)[0].id; if(!want.includes(oldest)) want.push(oldest); }
   let done=0; const tpls={};
   await Promise.all(want.map(id=>loadTemplate(id).then(t=>{ tpls[id]=t; }).catch(()=>{}).finally(()=>{ done++; $("#veilBar").style.width=(done/want.length*100)+"%"; })));
   if(myBuild!==building) return;
   const ids=want.filter(id=>tpls[id]);
-  if(!ids.length){ $("#veilText").textContent="The audience couldn't load. Open Podium through a local web server; see the README."; return; }
+  if(!ids.length&&!photoreal){ $("#veilText").textContent="The audience couldn't load. Open Podium through a local web server; see the README."; return; }
+  if(window.PodiumLive) PodiumLive.releaseAll();
   disposeRoom(); rnd=mulberry32(cfg.seed*977+cfg.size+cfg.room.length);
   SHADOWS=cfg.size<=36; renderer.shadowMap.enabled=SHADOWS;
   const r=builders[cfg.room](cfg.size);
@@ -576,9 +581,11 @@ async function buildRoom(){
   let skepticIdx=-1;
   if(cfg.skeptic){ let best=1e9; r.seats.forEach((s,i)=>{ const d=Math.hypot(s.x*1.5,s.z-view.base.z); if(d<best){best=d;skepticIdx=i;} }); }
   const castOf=id=>CAST.find(c=>c.id===id);
-  const oldest=ids.map(castOf).sort((a,b)=>b.age-a.age)[0].id;
+  const oldest=photoreal?null:ids.map(castOf).sort((a,b)=>b.age-a.age)[0].id;
+  const livePlan=photoreal?PodiumLive.plan(r.seats,view.base):null;
   let prev=null;
   people=r.seats.map((seat,i)=>{
+    if(photoreal) return photorealPerson(seat,i,skepticIdx,livePlan.get(i));
     let id=ids[(i*5+Math.floor(rnd()*ids.length))%ids.length];
     if(skepticIdx>=0&&id===oldest&&ids.length>2) id=ids[(ids.indexOf(id)+1)%ids.length];
     if(id===prev&&ids.length>1) id=ids[(ids.indexOf(id)+1)%ids.length];
@@ -608,8 +615,25 @@ async function buildRoom(){
   people.forEach(p=>{ PodiumRig.play(p.inst,pick(["breathe_01","idle_neutral_01","idle_waiting_01"]),{offset:rnd(),fade:.01}); if(p.spec.skeptic){ PodiumRig.setPose(p.inst,"crossed"); p.inst.w=1; p.inst.pose="crossed"; } });
   // neighbours, for whispering, yawns and phones that spread
   people.forEach(p=>{ p.nb=people.filter(q=>q!==p&&Math.hypot(q.seat.x-p.seat.x,q.seat.z-p.seat.z)<1.8).map(q=>q.i).slice(0,6); });
+  if(photoreal) PodiumLive.connect();
   $("#roomLabel").textContent=`${ROOMS[cfg.room].label} · ${people.length} ${people.length===1?"person":"people"}`;
   if(firstBuild){ firstBuild=false; setTimeout(()=>$("#veil").classList.add("gone"),300); }
+}
+// A seat filled by a photoreal person (live face or recorded clips) instead of a 3D avatar.
+function photorealPerson(seat,i,skepticIdx,liveCast){
+  const holder=new THREE.Group(); holder.position.set(seat.x,seat.y,seat.z); holder.rotation.y=seat.ry; roomGroup.add(holder);
+  chair(seat.chair,holder);
+  const placed=PodiumLive.place(seat,i,holder,liveCast), dist=Math.hypot(seat.x-view.base.x,seat.z-view.base.z);
+  const sp={ name:placed.name, age:placed.age, role:pick(ROLES[cfg.room]),
+    warmth:clamp(R(.3,.85)-(cfg.temper-.5)*.6), patience:clamp(R(.35,.95)-(cfg.temper-.5)*.4), interest:clamp(R(.4,.9)-(cfg.temper-.5)*.3),
+    expertise:clamp(cfg.expert+R(-.2,.2)), phoneProne:clamp((cfg.phones?.55:.12)*R(.5,1.5)+(placed.age<30?.1:0)+(cfg.temper>.9?.45:cfg.temper>.7?.15:0)), skeptic:i===skepticIdx };
+  if(sp.skeptic) Object.assign(sp,{warmth:.12,patience:.3,interest:.45,expertise:clamp(cfg.expert+.35),phoneProne:.05});
+  return { i, spec:sp, inst:PodiumRig.fake(), live:placed.person, holder, phone:{visible:false}, dist, far:false,
+    spYaw:0, spPitch:clamp(Math.atan2(seat.y+1.15-view.base.y,dist),-.5,.5),
+    e:.55+sp.interest*.2, c:0, b:0, v:sp.warmth, state:"idle", stateUntil:0, hooked:false, nb:[], seat,
+    s:{lean:0,pitch:0,yaw:0,roll:0,brow:0,furrow:0,smile:0,clap:0,phase:R(0,6.3)},
+    t:{lean:0,pitch:0,yaw:0,roll:0,brow:0,furrow:0,smile:sp.warmth*.4,clap:0}, attend:0, tAttend:0,
+    nod:0, nodT:0, blinkIn:R(1,4), sacc:{y:0,p:0,next:R(.5,2)}, look:{y:R(-.6,.6),p:R(-.1,.2)} };
 }
 function disposeRoom(){ roomGroup.traverse(o=>{ if(o.isMesh&&!o.isSkinnedMesh&&o.geometry!==phoneGeo&&o.geometry!==screenGeo) o.geometry.dispose(); }); scene.remove(roomGroup); roomGroup=new THREE.Group(); scene.add(roomGroup); }
 
@@ -626,9 +650,11 @@ function animatePeople(dt,t,frame){
     p.sacc.next-=d; if(p.sacc.next<0){ p.sacc.next=R(.6,2.6); p.sacc.y=R(-.06,.06); p.sacc.p=R(-.03,.03); }
     p.blinkIn-=d; const blinking=p.blinkIn<0; if(p.blinkIn<-.13) p.blinkIn=R(2,5.5);
     const lookYaw=lerp(p.look.y,p.spYaw,p.attend), lookPitch=lerp(p.look.p,p.spPitch,p.attend);
-    PodiumRig.apply(p.inst,{lean:s.lean+Math.sin(t*1.5+s.phase)*.012, pitch:lookPitch*.6+s.pitch+Math.sin(p.nodT*8)*p.nod, yaw:lookYaw*.75+s.yaw, roll:s.roll,
+    const st={lean:s.lean+Math.sin(t*1.5+s.phase)*.012, pitch:lookPitch*.6+s.pitch+Math.sin(p.nodT*8)*p.nod, yaw:lookYaw*.75+s.yaw, roll:s.roll,
       eyeYaw:clamp(lookYaw*.25+p.sacc.y,-.35,.35), eyePitch:clamp(lookPitch*.3+p.sacc.p,-.3,.3), brow:s.brow, furrow:s.furrow, smile:s.smile,
-      blink:blinking?1:0, clap:s.clap, phase:s.phase},t,d);
+      blink:blinking?1:0, clap:s.clap, phase:s.phase};
+    if(p.live){ PodiumLive.update(p,st,d,performance.now()); continue; }
+    PodiumRig.apply(p.inst,st,t,d);
     p.phone.visible=PodiumRig.posed(p.inst)==="phone";
   }
 }
@@ -743,7 +769,7 @@ function choose(p,t,live){
   if(st!==prev||!p.inst.current) PodiumRig.play(p.inst,pick(BASE[st]||BASE.listening));
   if(st===prev&&rnd()<.04) PodiumRig.play(p.inst,pick(["idle_touch_face","idle_cough","idle_roll_head"]),{once:true});
 }
-function yawn(p,spread=true){ if(!PodiumRig.play(p.inst,"idle_yawn",{once:true})) return; S.yawns++; p.tAttend=0;
+function yawn(p,spread=true){ if(!(p.live?PodiumLive.yawn(p):PodiumRig.play(p.inst,"idle_yawn",{once:true}))) return; S.yawns++; p.tAttend=0;
   if(spread) p.nb.forEach(j=>{ const q=people[j]; if(q&&q.b>.3&&rnd()<.3) setTimeout(()=>yawn(q,false),R(1500,4000)); });
   if(S.mode==="live"&&cool("yawn",20000)) note("warn",`${p.spec.name} yawned`); }
 function whisper(p){ const q=people[pick(p.nb)]; if(!q) return; const dir=(q.seat.x-p.seat.x)>0?1:-1;
@@ -862,6 +888,14 @@ function segGroup(id,fn){ const g=$(id); g.querySelectorAll("button").forEach(b=
 segGroup("#mood",v=>{ cfg.temper=+v; $("#moodHint").textContent=MOOD_HINTS[v]||""; if(S.mode!=="live") rebuildSoon(); });
 segGroup("#know",v=>{ cfg.expert=+v; if(S.mode!=="live") rebuildSoon(); });
 $("#phones").onchange=e=>{ cfg.phones=e.target.checked; if(S.mode!=="live") rebuildSoon(); };
+async function applyLive(){ const on=$("#photoreal").checked, base=$("#liveUrl").value; $("#liveRow").hidden=!on;
+  if(!window.PodiumLive) return; const ok=await PodiumLive.configure(base,on);
+  $("#liveStatus").textContent=!on?"":!base?"Paste the URL from modal deploy.":ok?(PodiumLive.usable(cfg.room)?"Connected. Photoreal people are seated.":"Connected. Choose the auditorium or lecture hall."):"Can't reach that server, or it has no cast yet.";
+  if(S.mode!=="live") rebuildSoon(); }
+// claude.ai pages can't open connections to outside servers, so photoreal mode is offered only when run locally or self-hosted
+if(window.claude) $("#photoreal").closest(".row").hidden=true;
+else if(window.PodiumLive){ const sv=PodiumLive.saved(); $("#liveUrl").value=sv.base; $("#photoreal").checked=sv.on; if(sv.on) applyLive(); }
+$("#photoreal").onchange=applyLive; $("#liveUrl").onchange=applyLive;
 $("#skeptic").onchange=e=>{ cfg.skeptic=e.target.checked; if(S.mode!=="live") rebuildSoon(); };
 const faces=$("#faces");
 function paintFaces(){ faces.querySelectorAll(".face").forEach(f=>f.setAttribute("aria-pressed",cfg.pool.has(f.dataset.id))); }
@@ -992,7 +1026,7 @@ canvas.addEventListener("pointerup",e=>{ if(drag&&!drag.moved) pickPerson(e); dr
 const ray=new THREE.Raycaster(), ndc=new THREE.Vector2(), _hp=new THREE.Vector3(); let inspected=null;
 function pickPerson(e){ ndc.set(e.clientX/innerWidth*2-1,-(e.clientY/innerHeight)*2+1); ray.setFromCamera(ndc,camera);
   // skinned meshes don't raycast in their seated shape, so pick the head or chest nearest the ray
-  let best=null,bd=.4; for(const p of people){ for(const b of [p.inst.B.Head,p.inst.B.Spine2]){ if(!b) continue; b.getWorldPosition(_hp); const d=ray.ray.distanceToPoint(_hp); if(d<bd){bd=d;best=p;} } }
+  let best=null,bd=.4; for(const p of people){ for(const b of (p.live?[null]:[p.inst.B.Head,p.inst.B.Spine2])){ if(b) b.getWorldPosition(_hp); else if(p.live) p.holder.localToWorld(_hp.set(0,1.15,.08)); else continue; const d=ray.ray.distanceToPoint(_hp); if(d<bd){bd=d;best=p;} } }
   inspected=best; const c=$("#card"); if(!inspected||document.body.classList.contains("ui-hidden")){ c.hidden=true; return; }
   c.style.left=Math.min(innerWidth-236,e.clientX+14)+"px"; c.style.top=Math.max(70,Math.min(innerHeight-200,e.clientY-30))+"px"; c.hidden=false; renderCard(); }
 const thoughts={idle:"Settling in before you start",listening:"Following along",engaged:"Interested and leaning in",drifting:"Mind is wandering",bored:"Bored and fidgeting","checked-out":"Has stopped listening",phone:"Checking their phone",confused:"Lost the thread",applause:"Applauding"};
@@ -1087,7 +1121,7 @@ function frame(){
     tlAcc+=dt; if(tlAcc>=1){ tlAcc=0; S.timeline.push({t:elapsed(t),e:S.avgE,c:S.avgC,text:S.words.slice(-8).map(w=>w.raw).join(" ")}); }
     $("#clock").textContent=fmtT(elapsed(t)); levelBars.forEach((b,i)=>b.style.height=(4+clamp(S.level*1.4-i*.12)*12)+"px"); }
   acc+=dt; let steps=0; while(acc>=.25&&steps<8){ acc-=.25; steps++; if(S.mode==="live") computeSignals(t); updateAudience(t); } if(acc>=.25) acc=0; if(steps&&inspected&&!$("#card").hidden) renderCard();
-  animatePeople(dt,t/1000,frameNo); prompterTick(dt);
+  animatePeople(dt,t/1000,frameNo); prompterTick(dt); if(window.PodiumLive) PodiumLive.tick(dt);
   view.yaw=lerp(view.yaw,view.tYaw,1-Math.exp(-dt*6)); view.pitch=lerp(view.pitch,view.tPitch,1-Math.exp(-dt*6));
   camera.position.copy(view.base); if(cfg.room!=="photo"){ camera.position.x+=Math.sin(t/1900)*.01; camera.position.y+=Math.sin(t/2600)*.005; }
   _dir.subVectors(view.look,view.base); const len=_dir.length(); _dir.normalize().applyAxisAngle(_up,view.yaw); _dir.y+=view.pitch;

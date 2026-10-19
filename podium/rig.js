@@ -81,7 +81,10 @@ mixer.stopAllAction(); mixer.uncacheRoot(scene);
     return inst;
   }
   // Body motion: loop a base clip, or play a one-shot (yawn, cough...) that returns to the base clip.
+  // Stand-in for people who aren't 3D (photoreal mode): every call is a no-op.
+  const fake = () => ({fake:true,B:{},actions:{},pose:null,w:0,current:null});
   function play(inst,name,{once=false,fade=.8,offset}={}){
+    if(inst.fake) return false;
     const a=inst.actions[name]; if(!a) return false;
     if(!once && inst.current===a) return true;
     const prev=inst.current;
@@ -96,9 +99,10 @@ mixer.stopAllAction(); mixer.uncacheRoot(scene);
   function addRot(inst,n,x,y,z){ const r=inst.tpl.rest[n], b=inst.B[n]; if(!r||!b) return;
     _q.setFromEuler(_e.set(x,y,z,'YXZ')); _c.copy(b.quaternion); b.quaternion.copy(r.Pi).multiply(_q).multiply(r.P).multiply(_c); }
   function move(inst,n,x,y,z){ const r=inst.tpl.rest[n], b=inst.B[n]; if(!r||!b) return; _v.set(x,y,z).applyQuaternion(r.Pi); b.position.copy(r.p).add(_v); }
-  function setPose(inst,name){ inst.poseTarget = name==='lap' && inst.mixer ? null : name; if(!inst.mixer && !inst.poseTarget) inst.poseTarget='lap'; }
+  function setPose(inst,name){ if(inst.fake) return; inst.poseTarget = name==='lap' && inst.mixer ? null : name; if(!inst.mixer && !inst.poseTarget) inst.poseTarget='lap'; }
   // s: {lean, pitch, yaw, roll, eyeYaw, eyePitch, brow, furrow, smile, blink, clap, phase}
   function apply(inst,s,time,dt){
+    if(inst.fake) return;
     // reset overlay bones first, so a clip without a track for one of them can't let the additions pile up
     for(const n of ANIM){ const rr=inst.tpl.rest[n], bb=inst.B[n]; if(rr&&bb) bb.quaternion.copy(rr.q); }
     if(inst.mixer) inst.mixer.update(dt);
@@ -123,6 +127,6 @@ mixer.stopAllAction(); mixer.uncacheRoot(scene);
       for(const L of 'LR') for(const a of ARM){ const t=lib[L+a]; if(!t) continue; const b=inst.B[L+a]; if(!inst.mixer) b.quaternion.copy(P.lap[L+a]); b.quaternion.slerp(t,e); } }
     else if(!inst.mixer) for(const L of 'LR') for(const a of ARM) inst.B[L+a].quaternion.copy(P.lap[L+a]);
   }
-  const posed = inst => inst.pose && inst.w>.7 ? inst.pose : null;
-  return {prepare, instance, apply, setPose, play, posed, parseClips, bonesOf};
+  const posed = inst => !inst.fake && inst.pose && inst.w>.7 ? inst.pose : null;
+  return {prepare, instance, apply, setPose, play, posed, parseClips, bonesOf, fake};
 })();

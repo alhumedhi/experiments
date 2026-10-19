@@ -1,0 +1,36 @@
+{
+  "name": "auditorium",
+  "portrait_model": "fal-ai/nano-banana-2",
+  "video_model": "fal-ai/kling-video/v3/pro/image-to-video",
+  "portrait_prompt": "Photograph of {desc}, seated in a padded auditorium seat, facing the camera directly with the head upright and level, framed from well above the top of the head down to the knees with clear space above the hair, hands resting in the lap, attentive neutral expression, eyes looking straight into the lens. Plain medium-grey seamless studio backdrop. Soft warm front light like stage lighting. Shot on a 50mm lens at f/4, natural skin texture with pores, true-to-life colour, candid documentary photo. No text, no logos.",
+  "negative_prompt": "camera movement, zoom, pan, cut, scene change, morphing face, face changing, extra fingers, distorted hands, blurry, text, subtitles, cartoon, 3d render, video game",
+  "front": [
+    {"id": "front_1", "desc": "a woman in her early thirties with dark brown skin and short natural hair, wearing a charcoal blazer over a white shirt"},
+    {"id": "front_2", "desc": "a man in his late fifties with grey hair and reading glasses pushed up on his head, wearing a navy cardigan over a collared shirt"},
+    {"id": "front_3", "desc": "a man in his late twenties of South Asian descent with a short beard, wearing a light blue oxford shirt"},
+    {"id": "front_4", "desc": "a woman in her mid forties of East Asian descent with shoulder-length black hair, wearing a cream knit sweater"}
+  ],
+  "back": [
+    {"id": "back_1", "desc": "a woman in her twenties with curly red hair, wearing a green sweater"},
+    {"id": "back_2", "desc": "a man in his forties with a shaved head and dark skin, wearing a grey suit jacket"},
+    {"id": "back_3", "desc": "a woman in her sixties with silver hair in a bob, wearing a burgundy blouse"},
+    {"id": "back_4", "desc": "a man in his thirties of Latino descent with wavy dark hair, wearing a denim shirt"},
+    {"id": "back_5", "desc": "a woman in her thirties wearing a navy hijab and a beige blazer"},
+    {"id": "back_6", "desc": "a young man in his early twenties with blond hair, wearing a black hoodie"},
+    {"id": "back_7", "desc": "a man in his fifties of East Asian descent with short grey hair, wearing a white shirt and dark tie"},
+    {"id": "back_8", "desc": "a woman in her forties with long brown hair, wearing a striped top"},
+    {"id": "back_9", "desc": "a man in his thirties with dark skin and a neat beard, wearing a camel overshirt"},
+    {"id": "back_10", "desc": "a woman in her fifties of South Asian descent with long dark hair tied back, wearing a teal cardigan"}
+  ],
+  "states": {
+    "listen":   "The person sits still in the seat and listens attentively to a speaker in front of them, breathing naturally, blinking, with small natural head movements. They end in the same pose they started in. Locked-off camera.",
+    "engaged":  "The person leans forward slightly with interest, nods twice in agreement with a small smile, then settles back into the same pose. Locked-off camera.",
+    "bored":    "The person looks bored, slumps a little, glances away to the side, sighs and shifts in the seat, then returns to the starting pose. Locked-off camera.",
+    "phone":    "The person picks up a phone from their lap, looks down and scrolls on it with their thumb, then puts it back in their lap and returns to the starting pose. Locked-off camera.",
+    "confused": "The person frowns slightly, tilts their head and looks puzzled, then returns to the starting pose. Locked-off camera.",
+    "clap":     "The person smiles and claps their hands warmly for a few seconds, then rests their hands back in their lap. Locked-off camera."
+  },
+  "front_states": ["phone", "clap"],
+  "back_states": ["listen", "engaged", "bored", "phone", "confused", "clap"],
+  "clip_seconds": "5"
+}
