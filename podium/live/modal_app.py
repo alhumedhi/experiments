@@ -23,7 +23,7 @@ image = (
     .pip_install("torch==2.5.1", "torchvision==0.20.1", index_url="https://download.pytorch.org/whl/cu124")
     .pip_install(
         "numpy==1.26.4", "opencv-python-headless==4.10.0.84", "scipy", "pyyaml", "imageio", "onnx",
-        "onnxruntime-gpu==1.20.1", "scikit-image", "tyro", "rich", "pykalman", "requests", "tqdm",
+        "onnxruntime-gpu==1.20.2", "scikit-image", "tyro", "rich", "pykalman", "requests", "tqdm",
         "albumentations", "huggingface_hub", "pillow", "fastapi[standard]", "rembg[gpu]==2.0.67",
     )
     .run_commands(
