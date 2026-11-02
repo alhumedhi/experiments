@@ -6,7 +6,7 @@
 - Regional tone: **Riyadh** formal Najdi warmth (حيّاكم الله) · **Jeddah** Hijazi courtesy (يعطيكم العافية) · **Kuwait** Kuwaiti greeting (عساكم بخير) · **Qatar** Gulf formal.
 - Offer: a **free mockup** of a clearer booking flow, no commitment. Low-friction "yes".
 - Signed as the studio (**فريق قلم**), no personal name. Every email has an opt-out line.
-- Sender: your free Zoho address (`{{EMAIL}}`); links point to the free site `{{SITE}}`.
+- Sender: your free Zoho address (`qalamcreative@zohomail.com`); links point to the free site `https://qalamcreative.surge.sh`.
 - Batch scope: prospects 1–6 only (MD Clinics, Dent Medical and Green Dent dropped).
 
 Follow-up plan: if no reply, one follow-up after 4 days (template at the bottom), then stop.
@@ -28,17 +28,17 @@ Follow-up plan: if no reply, one follow-up after 4 days (template at the bottom)
 - الصفحة استغرقت قرابة 28 ثانية حتى اكتمل تحميلها في تجربتنا.
 
 بادرنا وجهّزنا تصوراً مجانياً لصفحة رئيسية لدنت كير: العروض نصاً واضحاً، وحجز من ثلاث لمسات (الخدمة، ثم الوقت، ثم الاسم والجوال)، وأزرار اتصال وواتساب ثابتة أسفل الشاشة. افتحوه من الجوال:
-{{SITE}}/concepts/dentcare/
+https://qalamcreative.surge.sh/concepts/dentcare/
 
 نحن «قلم»، استوديو تصميم متخصص في إعادة تصميم المواقع والمنتجات الرقمية للشركات في العالم العربي. إن أعجبكم التصور، يسعدنا أن نناقش تنفيذه، بدون أي التزام.
 
 مع خالص التحية،
 فريق قلم | Qalam
-{{SITE}}
+https://qalamcreative.surge.sh
 
 إن لم يكن الموضوع من اهتمامكم، يكفي الرد بكلمة «لا» ولن نراسلكم مرة أخرى.
 
-> _Gist (EN):_ your offers expired on 31 Oct and are still the first thing visitors see, inside an unreadable poster image; a heading shows the raw domain; 3 competing booking buttons; ~28 s load. **We already built you a free mockup: link.** (`{{SITE}}` is replaced by the live site URL at deploy.)
+> _Gist (EN):_ your offers expired on 31 Oct and are still the first thing visitors see, inside an unreadable poster image; a heading shows the raw domain; 3 competing booking buttons; ~28 s load. **We already built you a free mockup: link.** (`https://qalamcreative.surge.sh` is replaced by the live site URL at deploy.)
 
 ---
 
@@ -60,7 +60,7 @@ Follow-up plan: if no reply, one follow-up after 4 days (template at the bottom)
 
 مع خالص التحية،
 فريق قلم | Qalam
-{{SITE}}
+https://qalamcreative.surge.sh
 
 إن لم يكن الموضوع من اهتمامكم، يكفي الرد بكلمة «لا» ولن نراسلكم مرة أخرى.
 
@@ -83,7 +83,7 @@ Follow-up plan: if no reply, one follow-up after 4 days (template at the bottom)
 
 مع التحية،
 فريق قلم | Qalam
-{{SITE}}
+https://qalamcreative.surge.sh
 
 إن لم يكن الموضوع من اهتمامكم، يكفي الرد بكلمة «لا» ولن نراسلكم مرة أخرى.
 
@@ -111,7 +111,7 @@ Follow-up plan: if no reply, one follow-up after 4 days (template at the bottom)
 
 مع التحية،
 فريق قلم | Qalam
-{{SITE}}
+https://qalamcreative.surge.sh
 
 إن لم يكن الموضوع من اهتمامكم، يكفي الرد بكلمة «لا» ولن نراسلكم مرة أخرى.
 
@@ -136,7 +136,7 @@ Follow-up plan: if no reply, one follow-up after 4 days (template at the bottom)
 
 مع التحية،
 فريق قلم | Qalam
-{{SITE}}
+https://qalamcreative.surge.sh
 
 إن لم يكن الموضوع من اهتمامكم، يكفي الرد بكلمة «لا» ولن نراسلكم مرة أخرى.
 
@@ -159,7 +159,7 @@ Follow-up plan: if no reply, one follow-up after 4 days (template at the bottom)
 
 مع خالص التحية،
 فريق قلم | Qalam
-{{SITE}}
+https://qalamcreative.surge.sh
 
 إن لم يكن الموضوع من اهتمامكم، يكفي الرد بكلمة «لا» ولن نراسلكم مرة أخرى.
 
@@ -174,4 +174,4 @@ Follow-up plan: if no reply, one follow-up after 4 days (template at the bottom)
 السلام عليكم،
 أعيد إرسال رسالتي السابقة باختصار: جهّزنا ملاحظات محددة على مسار الحجز في موقعكم، ويسعدنا أن نرسل لكم تصوراً مجانياً للحل خلال أيام. يكفي الرد بـ«نعم» ونرسله.
 
-فريق قلم | {{SITE}}
+فريق قلم | https://qalamcreative.surge.sh

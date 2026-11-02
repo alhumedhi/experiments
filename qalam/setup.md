@@ -2,9 +2,9 @@
 
 | Piece | Free option | Status |
 |---|---|---|
-| Website | **Surge.sh** → `https://qalamcreative.surge.sh` (subdomain checked free on 2026-11-02) | Built (`site/`), deploys as soon as the Zoho email exists |
-| Email | **Zoho Mail free personal account** → e.g. `qalamcreative@zohomail.com` | **You do this (3 min)**; needs a CAPTCHA + a one-time code |
-| Dent Care mockup | `qalamcreative.surge.sh/concepts/dentcare/` | Built, unlisted (`noindex`) |
+| Website | **Surge.sh** → https://qalamcreative.surge.sh | **Live** (account: qalamcreative@zohomail.com) |
+| Email | **Zoho Mail free personal account** → `qalamcreative@zohomail.com` | **Done** |
+| Dent Care mockup | https://qalamcreative.surge.sh/concepts/dentcare/ | **Live**, unlisted (`noindex`) |
 
 ## 1. Zoho Mail account (you: ~3 minutes)
 
@@ -18,7 +18,7 @@ Zoho's signup has a CAPTCHA and sends a one-time code to your phone/email. Claud
 
 Note: Zoho's free "Forever Free" *business* plan needs a domain you own, so without buying one the free personal `@zohomail.com` address is the route. Later, buying a ~$11/yr domain is the single biggest upgrade for trust and deliverability.
 
-## 2. Website deploy (me, once I have the email)
+## 2. Website deploy (redeploy after any change)
 
 ```bash
 qalam/site/build.sh qalamcreative@zohomail.com

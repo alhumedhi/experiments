@@ -33,6 +33,14 @@ h1,.a,.b{opacity:0;transform:translateY(12px);transition:opacity .8s ease,transf
  .a,.b{grid-column:1/13;font-size:20px}.b{padding-top:0}
  main{padding:10vh 0 6vh;gap:18px}
 }
+
+.qsvg{display:block;height:clamp(200px,32vw,460px);width:auto;margin-inline-end:auto;overflow:visible}
+.qsvg path{fill:#000;fill-opacity:0;stroke:#000;stroke-width:1.5;vector-effect:non-scaling-stroke;stroke-linejoin:round;stroke-dasharray:var(--l);stroke-dashoffset:var(--l)}
+.qsvg.go path{animation:draw 1.5s cubic-bezier(.5,0,.2,1) forwards,ink .7s ease forwards;animation-delay:calc(var(--i)*.45s),calc(var(--i)*.45s + 1.1s)}
+@keyframes draw{to{stroke-dashoffset:0}}
+@keyframes ink{to{fill-opacity:1;stroke-width:0}}
+[dir=rtl] h1{padding-bottom:20px}
+@media (prefers-reduced-motion:reduce){.qsvg path{fill-opacity:1;stroke:none;animation:none!important}}
 @media (prefers-reduced-motion:reduce){h1,.a,.b{opacity:1;transform:none;transition:none}}
 </style>
 </head>
@@ -47,13 +55,16 @@ h1,.a,.b{opacity:0;transform:translateY(12px);transition:opacity .8s ease,transf
   <div class="bottom"><span class="l" data-i="f">Qalam</span><span class="r" data-i="g">قلم</span></div>
 </div>
 <script>
+const QSVG=`<svg class="qsvg" viewBox="-28 -996.533 1066.5 1363.53" role="img" aria-label="قلم"><path d="M832 -479Q851 -479 867.0 -486.5Q883 -494 893 -502Q893 -500 895.0 -495.5Q897 -491 899 -484L907 -458Q894 -450 871.5 -441.0Q849 -432 817 -422Q785 -412 743.5 -401.5Q702 -391 650 -380Q641 -378 641 -371L619 -247Q618 -240 622.0 -236.0Q626 -232 633 -233Q780 -265 828 -290Q852 -303 875.0 -321.0Q898 -339 919 -363V-362Q942 -387 957.0 -420.5Q972 -454 982 -493Q986 -507 988.5 -522.5Q991 -538 991 -554Q991 -601 970.0 -639.0Q949 -677 920 -698Q914 -702 907.5 -705.5Q901 -709 892 -709Q870 -709 851 -684Q831 -656 816.5 -625.5Q802 -595 785 -564Q776 -549 776 -527Q776 -502 792.0 -490.5Q808 -479 832 -479Z"/><path d="M959 -846 1016 -959Q1021 -967 1016.0 -972.5Q1011 -978 1004 -976Q959 -967 913.5 -958.5Q868 -950 821 -942Q819 -941 816.0 -939.5Q813 -938 812 -936L756 -822Q752 -815 756.5 -809.5Q761 -804 768 -805Q814 -813 859.5 -822.0Q905 -831 951 -839Q957 -842 959 -846Z"/><path d="M403 -584Q365 -554 339.5 -510.5Q314 -467 297 -413Q288 -384 309 -381Q320 -380 331 -394Q357 -436 382.0 -463.5Q407 -491 429 -504Q461 -522 497.5 -537.0Q534 -552 576 -566L604 -244Q605 -236 613.0 -233.5Q621 -231 626 -238L699 -338L651 -923Q650 -931 641.5 -933.5Q633 -936 629 -928L556 -808L565 -686Q519 -663 479.0 -638.0Q439 -613 403 -584Z"/><path d="M475 -458Q480 -487 464.0 -499.0Q448 -511 415 -511Q411 -511 409.5 -511.0Q408 -511 404 -511Q377 -511 360 -506Q342 -504 329 -490Q322 -483 315.0 -472.0Q308 -461 301 -446L267 -370Q238 -361 208.0 -353.0Q178 -345 150 -335Q111 -322 83.0 -306.5Q55 -291 33 -258Q16 -218 4.0 -167.0Q-8 -116 -8 -60Q-7 -4 -0.5 46.0Q6 96 17 143Q28 189 37.5 237.5Q47 286 54 337Q55 347 64.5 347.0Q74 347 77 339Q86 308 90.0 276.5Q94 245 94 211Q94 194 93.0 176.5Q92 159 90 143L50 -110Q49 -113 49 -116Q49 -118 49.0 -119.5Q49 -121 49 -122Q49 -137 58 -146Q84 -169 119.5 -184.0Q155 -199 195 -207Q261 -221 319.5 -251.5Q378 -282 416 -324Q439 -350 452.5 -383.5Q466 -417 475 -458Z"/></svg>`;
 const AR={t:"استوديو تصميم",h:"قلم",a:"نعيد تصميم المواقع والتطبيقات للشركات في العالم العربي.",b:"أرسل لنا رابط موقعك، ونخبرك بما سنغيّره.",f:"قلم",g:"Qalam"};
 const EN={};document.querySelectorAll('[data-i]').forEach(e=>EN[e.dataset.i]=e.textContent);
 function setLang(l){const h=document.documentElement;h.lang=l;h.dir=l==='ar'?'rtl':'ltr';const d=l==='ar'?AR:EN;
  document.querySelectorAll('[data-i]').forEach(e=>e.textContent=d[e.dataset.i]);
+ if(l==='ar'){const h1=document.querySelector('h1');h1.innerHTML=QSVG;writeQ(h1.querySelector('svg'))}
  document.getElementById('lang').textContent=l==='ar'?'English':'العربية';try{localStorage.setItem('qalam-lang',l)}catch(e){}}
 document.getElementById('lang').onclick=()=>setLang(document.documentElement.lang==='ar'?'en':'ar');
 try{if(localStorage.getItem('qalam-lang')==='ar')setLang('ar')}catch(e){}
+function writeQ(svg){svg.querySelectorAll('path').forEach((p,i)=>{p.style.setProperty('--l',Math.ceil(p.getTotalLength()));p.style.setProperty('--i',i)});requestAnimationFrame(()=>requestAnimationFrame(()=>svg.classList.add('go')))}
 requestAnimationFrame(()=>requestAnimationFrame(()=>document.body.classList.add('ready')));
 </script>
 </body>
