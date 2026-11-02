@@ -4,9 +4,10 @@ A design studio that redesigns websites and products for businesses in the Arabi
 
 | File | What it is |
 |---|---|
-| [`setup.md`](setup.md) | Domain + email setup (qalamcreative.com, hello@), deliverability, keeping the founder anonymous |
-| [`prospects.md`](prospects.md) | Batch 1: 9 vetted prospects with the conversion problems found on each site |
-| [`outreach/batch-01-drafts.md`](outreach/batch-01-drafts.md) | Arabic cold-email drafts, one per prospect, tailored by region. **Not sent; awaiting approval** |
+| [`setup.md`](setup.md) | $0 setup: free Zoho email + free Surge site, sending rules, anonymity |
+| [`site/`](site/) | Qalam website (English default, Arabic toggle) + Dent Care redesign concept (`site/concepts/dentcare/`) |
+| [`prospects.md`](prospects.md) | Batch 1: vetted prospects (outreach targets #1–6) with the conversion problems found on each site |
+| [`outreach/batch-01-drafts.md`](outreach/batch-01-drafts.md) | Arabic cold-email drafts, for prospects 1–6, tailored by region. **Not sent; awaiting approval** |
 | [`evidence/`](evidence/) | Mobile screenshots backing every claim in the emails |
 | [`tools/`](tools/) | The scripts used to find and audit prospects (re-runnable for new batches) |
 

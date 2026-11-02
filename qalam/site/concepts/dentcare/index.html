@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>تصور مقترح: مجمع دنت كير لطب الأسنان | قلم</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--teal:#0f8b7e;--teal-d:#0a6158;--teal-l:#e5f4f1;--ink:#12302c;--muted:#5d726e;--bg:#f6faf9;--card:#fff;--line:#dde9e6;--red:#d94b4b;--gold:#f2b544;--r:16px}
+*{box-sizing:border-box;margin:0}
+body{font:400 16px/1.7 "IBM Plex Sans Arabic",system-ui,sans-serif;color:var(--ink);background:var(--bg);padding-bottom:84px}
+a{color:inherit;text-decoration:none}
+.wrap{max-width:1080px;margin:0 auto;padding:0 18px}
+.concept{background:#141a2e;color:#f1e3c4;font-size:13px;text-align:center;padding:8px 14px}
+.concept b{color:#e8b04b}
+header.top{background:#fff;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:20}
+header.top .wrap{display:flex;align-items:center;justify-content:space-between;height:64px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:19px}
+.brand .mk{width:36px;height:36px;border-radius:10px;background:var(--teal);display:grid;place-items:center;color:#fff}
+.brand small{display:block;font-size:11px;font-weight:500;color:var(--muted);line-height:1}
+.top .book-s{background:var(--teal);color:#fff;padding:9px 16px;border-radius:99px;font-weight:600;font-size:14px}
+.hero{padding:36px 0 28px;background:linear-gradient(180deg,#fff, var(--bg))}
+.hero .wrap{display:grid;grid-template-columns:1.1fr 1fr;gap:32px;align-items:center}
+.trust{display:inline-flex;align-items:center;gap:8px;background:var(--teal-l);color:var(--teal-d);font-weight:600;font-size:14px;padding:6px 12px;border-radius:99px}
+.stars{color:var(--gold);letter-spacing:1px}
+h1{font-size:clamp(30px,5vw,46px);line-height:1.3;margin:16px 0 12px}
+h1 span{color:var(--teal)}
+.hero p.lead{color:var(--muted);font-size:18px;margin-bottom:22px}
+.facts{display:flex;gap:18px;flex-wrap:wrap;font-size:14px;color:var(--muted)}
+.facts b{color:var(--ink);font-size:16px;display:block}
+/* booking card */
+.bk{background:var(--card);border:1px solid var(--line);border-radius:22px;box-shadow:0 20px 50px -24px rgba(15,139,126,.35);padding:22px}
+.bk h2{font-size:20px;margin-bottom:4px}
+.bk .hint{font-size:13px;color:var(--muted);margin-bottom:14px}
+.prog{display:flex;gap:6px;margin-bottom:16px}.prog i{flex:1;height:4px;border-radius:4px;background:var(--line)}.prog i.on{background:var(--teal)}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{border:1.5px solid var(--line);background:#fff;border-radius:99px;padding:9px 14px;font:inherit;font-size:15px;cursor:pointer;color:var(--ink)}
+.chip:hover{border-color:var(--teal)}
+.chip.sel{background:var(--teal);border-color:var(--teal);color:#fff}
+.days{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin-bottom:12px}
+.day{border:1.5px solid var(--line);border-radius:12px;padding:8px 0;text-align:center;cursor:pointer;background:#fff;font:inherit;font-size:13px;color:var(--ink)}
+.day b{display:block;font-size:17px}
+.day.sel{background:var(--teal);border-color:var(--teal);color:#fff}
+.times{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.time{border:1.5px solid var(--line);border-radius:10px;padding:8px 0;text-align:center;cursor:pointer;background:#fff;font:inherit;font-size:14px;color:var(--ink)}
+.time.sel{background:var(--teal);border-color:var(--teal);color:#fff}
+.field{display:block;margin-bottom:10px}
+.field input{width:100%;border:1.5px solid var(--line);border-radius:12px;padding:12px 14px;font:inherit;font-size:16px}
+.field input:focus{outline:none;border-color:var(--teal)}
+.go{width:100%;margin-top:14px;background:var(--teal);color:#fff;border:0;border-radius:14px;padding:14px;font:inherit;font-weight:700;font-size:17px;cursor:pointer}
+.go:disabled{background:#a9cfc9;cursor:not-allowed}
+.back{background:none;border:0;color:var(--muted);font:inherit;font-size:14px;cursor:pointer;margin-top:8px}
+.done{text-align:center;padding:12px 0}
+.done .ok{width:56px;height:56px;border-radius:50%;background:var(--teal-l);color:var(--teal);display:grid;place-items:center;margin:0 auto 10px;font-size:28px}
+.pay{display:flex;align-items:center;gap:8px;justify-content:center;font-size:12px;color:var(--muted);margin-top:12px}
+section{padding:48px 0}
+h2.sec{font-size:clamp(24px,3.4vw,32px);margin-bottom:6px}
+.secp{color:var(--muted);margin-bottom:24px}
+.offers{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.offer{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:20px;position:relative;overflow:hidden}
+.offer .k{font-size:14px;color:var(--muted)}
+.offer .v{font-size:30px;font-weight:700;color:var(--teal-d);line-height:1.3}
+.offer .v small{font-size:15px;font-weight:600}
+.offer s{color:var(--muted);font-size:14px}
+.offer .badge{position:absolute;top:14px;left:14px;background:#fdeaea;color:var(--red);font-size:12px;font-weight:700;padding:2px 8px;border-radius:99px}
+.offer a{display:inline-block;margin-top:10px;font-weight:600;color:var(--teal);font-size:14px}
+.inst{margin-top:12px;font-size:14px;color:var(--muted)}
+.svc{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.svc div{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:18px 18px;display:flex;gap:12px;align-items:center;font-weight:600}
+.svc span{width:40px;height:40px;border-radius:12px;background:var(--teal-l);display:grid;place-items:center;flex:none;font-size:20px}
+.revs{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.rev{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:20px}
+.rev p{font-size:15px;margin:8px 0 10px}
+.rev b{font-size:14px;color:var(--muted);font-weight:600}
+.visit{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.visit .card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:22px}
+.visit dl{display:grid;grid-template-columns:auto 1fr;gap:6px 16px;font-size:15px}
+.visit dt{color:var(--muted)}
+.ins{font-size:14px;color:var(--muted);margin-top:12px}
+footer{padding:28px 0;color:var(--muted);font-size:13px;border-top:1px solid var(--line)}
+.bar{position:fixed;bottom:0;inset-inline:0;background:#fff;border-top:1px solid var(--line);display:grid;grid-template-columns:2fr 1fr 1fr;gap:8px;padding:10px 12px calc(10px + env(safe-area-inset-bottom));z-index:30}
+.bar a{border-radius:12px;padding:12px 0;text-align:center;font-weight:700;font-size:15px}
+.bar .b1{background:var(--teal);color:#fff}.bar .b2{background:var(--teal-l);color:var(--teal-d)}.bar .b3{background:#e7f8ed;color:#1b7d3e}
+@media (min-width:900px){.bar{display:none}body{padding-bottom:0}}
+@media (max-width:900px){.hero .wrap{grid-template-columns:1fr}.offers{grid-template-columns:1fr 1fr}.svc{grid-template-columns:1fr 1fr}.revs,.visit{grid-template-columns:1fr}.top .book-s{display:none}}
+@media (max-width:420px){.svc{grid-template-columns:1fr}.times{grid-template-columns:repeat(3,1fr)}}
+</style>
+</head>
+<body>
+<div class="concept">تصور مقترح من <b>استوديو قلم</b> لمجمع دنت كير، وليس الموقع الرسمي. لا يتم إرسال أي بيانات من هذه الصفحة.</div>
+
+<header class="top"><div class="wrap">
+  <div class="brand"><div class="mk">✦</div><div>دنت كير<small>لطب الأسنان · العليا</small></div></div>
+  <a class="book-s" href="#book">احجز موعدك</a>
+</div></header>
+
+<div class="hero"><div class="wrap">
+  <div>
+    <span class="trust"><span class="stars">★★★★★</span> 4.5 من أكثر من 1,200 تقييم على قوقل</span>
+    <h1>ابتسامتك بأيدٍ تثق بها،<br><span>في قلب العليا منذ 2006.</span></h1>
+    <p class="lead">زراعة، تقويم، وعلاج أسنان شامل لكل العائلة. احجز موعدك في أقل من دقيقة، وسنؤكد لك عبر واتساب.</p>
+    <div class="facts">
+      <div><b>20+ سنة</b>في الرياض</div>
+      <div><b>6 تخصصات</b>تحت سقف واحد</div>
+      <div><b>تقسيط</b>تمارا وتابي بدون فوائد</div>
+    </div>
+  </div>
+
+  <div class="bk" id="book">
+    <div class="prog"><i class="on"></i><i></i><i></i></div>
+    <div id="s1">
+      <h2>ما الذي تحتاجه؟</h2>
+      <p class="hint">اختر الأقرب، والطبيب يحدد التفاصيل في الزيارة.</p>
+      <div class="chips" id="svc">
+        <button class="chip">كشف وتنظيف</button><button class="chip">زراعة أسنان</button><button class="chip">تقويم شفاف</button>
+        <button class="chip">تقويم معدني</button><button class="chip">حشوات تجميلية</button><button class="chip">علاج عصب</button>
+        <button class="chip">أسنان الأطفال</button><button class="chip">لست متأكداً</button>
+      </div>
+    </div>
+    <div id="s2" hidden>
+      <h2>اختر الوقت المناسب</h2>
+      <p class="hint">من السبت إلى الخميس، 1 ظهراً حتى 9 مساءً.</p>
+      <div class="days" id="days"></div>
+      <div class="times" id="times"></div>
+      <button class="back" data-to="1">→ رجوع</button>
+    </div>
+    <div id="s3" hidden>
+      <h2>آخر خطوة</h2>
+      <p class="hint" id="summary"></p>
+      <label class="field"><input id="nm" placeholder="الاسم" autocomplete="name"></label>
+      <label class="field"><input id="ph" placeholder="رقم الجوال 05xxxxxxxx" inputmode="tel" autocomplete="tel" dir="ltr" style="text-align:right"></label>
+      <button class="go" id="confirm" disabled>تأكيد الحجز</button>
+      <button class="back" data-to="2">→ رجوع</button>
+    </div>
+    <div id="s4" hidden class="done">
+      <div class="ok">✓</div>
+      <h2>تم استلام طلبك</h2>
+      <p class="hint" id="final"></p>
+    </div>
+    <div class="pay">💳 تقسيط عبر تمارا وتابي · 🛡️ نقبل أغلب شركات التأمين</div>
+  </div>
+</div></div>
+
+<section><div class="wrap">
+  <h2 class="sec">عروض هذا الشهر</h2>
+  <p class="secp">أسعار واضحة، تُقرأ على الجوال، ويجدها قوقل.</p>
+  <div class="offers">
+    <div class="offer"><span class="badge"><bdi dir="ltr">−20%</bdi></span><div class="k">زراعة أمريكية</div><div class="v">4,000 <small>ريال</small></div><s>5,000 ريال</s><br><a href="#book">احجز استشارة ←</a></div>
+    <div class="offer"><span class="badge"><bdi dir="ltr">−25%</bdi></span><div class="k">زراعة سويسرية</div><div class="v">3,000 <small>ريال</small></div><s>4,000 ريال</s><br><a href="#book">احجز استشارة ←</a></div>
+    <div class="offer"><span class="badge"><bdi dir="ltr">−20%</bdi></span><div class="k">تقويم شفاف</div><div class="v">20% <small>خصم</small></div><s>لفترة محدودة</s><br><a href="#book">احجز استشارة ←</a></div>
+    <div class="offer"><span class="badge"><bdi dir="ltr">−20%</bdi></span><div class="k">تقويم معدني</div><div class="v">20% <small>خصم</small></div><s>لفترة محدودة</s><br><a href="#book">احجز استشارة ←</a></div>
+  </div>
+  <p class="inst">الأسعار من عرض المجمع الحالي. في الموقع الفعلي يُحدَّث تاريخ انتهاء العرض تلقائياً.</p>
+</div></section>
+
+<section style="background:#fff"><div class="wrap">
+  <h2 class="sec">خدماتنا</h2>
+  <p class="secp">كل تخصصات طب الأسنان في مكان واحد.</p>
+  <div class="svc">
+    <div><span>🦷</span>زراعة الأسنان وجراحة اللثة</div>
+    <div><span>😁</span>تقويم الأسنان والفكين</div>
+    <div><span>✨</span>الحشوات والعلاج التحفظي</div>
+    <div><span>👑</span>التركيبات والتعويضات</div>
+    <div><span>🩺</span>علاج العصب والجذور</div>
+    <div><span>🧸</span>طب أسنان الأطفال</div>
+  </div>
+</div></section>
+
+<section><div class="wrap">
+  <h2 class="sec">ماذا يقول مراجعونا</h2>
+  <p class="secp">من تقييمات قوقل.</p>
+  <div class="revs">
+    <div class="rev"><span class="stars">★★★★★</span><p>«عيادة نظيفة ومرتبة ومواعيدهم ولا غلطة. وأشكر دكتور جهاد، سوّى لي زرعتين باحترافية وأمانة.»</p><b>سعود</b></div>
+    <div class="rev"><span class="stars">★★★★★</span><p>«أراجع عند دكتورة رزان… يدها خفيفة ومتقنة لعملها، والاستقبال خدومين ومواعيدهم مرنة.»</p><b>فيصل</b></div>
+    <div class="rev"><span class="stars">★★★★★</span><p>«سعيدة جداً بالتجربة وما ندمت أبداً. دكتورة فرح ما قصّرت معي أنا وأمي.»</p><b>الدانة</b></div>
+  </div>
+</div></section>
+
+<section style="background:#fff"><div class="wrap">
+  <h2 class="sec">زورونا</h2>
+  <div class="visit">
+    <div class="card"><dl>
+      <dt>العنوان</dt><dd>الرياض، حي العليا، طريق الملك فهد الفرعي، تقاطع التحلية، بجانب الصندوق الأسود</dd>
+      <dt>الدوام</dt><dd>السبت إلى الخميس، 1:00 م حتى 9:00 م · الجمعة مغلق</dd>
+      <dt>الهاتف</dt><dd><a href="tel:0112196000" dir="ltr">011 219 6000</a></dd>
+    </dl><p class="ins">نرحب بعملاء شركات التأمين الطبي.</p></div>
+    <div class="card" style="display:grid;place-items:center;min-height:160px;background:var(--teal-l);color:var(--teal-d);font-weight:600">خريطة قوقل (في الموقع الفعلي)</div>
+  </div>
+</div></section>
+
+<footer><div class="wrap">تصور تصميمي من استوديو قلم · qalam · الأسماء والأسعار والتقييمات مأخوذة من موقع دنت كير وصفحته على قوقل.</div></footer>
+
+<nav class="bar">
+  <a class="b1" href="#book">احجز موعدك</a>
+  <a class="b2" href="tel:0112196000">اتصال</a>
+  <a class="b3" href="https://wa.me/966596695713">واتساب</a>
+</nav>
+
+<script>
+const st={svc:null,day:null,time:null};
+const show=n=>{for(let i=1;i<=4;i++)document.getElementById('s'+i).hidden=i!==n;document.querySelectorAll('.prog i').forEach((e,i)=>e.classList.toggle('on',i<Math.min(n,3)));};
+document.querySelectorAll('#svc .chip').forEach(b=>b.onclick=()=>{document.querySelectorAll('#svc .chip').forEach(x=>x.classList.remove('sel'));b.classList.add('sel');st.svc=b.textContent;setTimeout(()=>show(2),180)});
+const dn=['الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'];
+const days=document.getElementById('days');let d=new Date(),n=0;
+while(n<6){d.setDate(d.getDate()+1);if(d.getDay()===5)continue;const x=new Date(d);const b=document.createElement('button');b.className='day';b.innerHTML=dn[x.getDay()].replace('ال','').slice(0,5)+'<b>'+x.getDate()+'</b>';
+ b.onclick=()=>{days.querySelectorAll('.day').forEach(y=>y.classList.remove('sel'));b.classList.add('sel');st.day=dn[x.getDay()]+' '+x.getDate()+'/'+(x.getMonth()+1);renderTimes()};days.appendChild(b);n++}
+const times=document.getElementById('times');
+function renderTimes(){times.innerHTML='';['1:00','2:00','3:30','4:30','5:30','6:30','7:30','8:30'].forEach((t,i)=>{if((i*7+st.day.length)%5===0)return;const b=document.createElement('button');b.className='time';b.textContent=t+' م';
+ b.onclick=()=>{st.time=b.textContent;document.getElementById('summary').textContent=st.svc+' · '+st.day+' · '+st.time;show(3)};times.appendChild(b)})}
+document.querySelectorAll('.back').forEach(b=>b.onclick=()=>show(+b.dataset.to));
+const nm=document.getElementById('nm'),ph=document.getElementById('ph'),cf=document.getElementById('confirm');
+const v=()=>cf.disabled=!(nm.value.trim().length>1&&/^0?5\d{8}$/.test(ph.value.replace(/\D/g,'').replace(/^966/,'0')));
+nm.oninput=ph.oninput=v;
+cf.onclick=()=>{document.getElementById('final').textContent='سنتواصل معك عبر واتساب لتأكيد موعد '+st.svc+' يوم '+st.day+' الساعة '+st.time+'.';show(4)};
+</script>
+</body>
+</html>

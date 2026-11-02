@@ -1,45 +1,47 @@
-# Setup: domain, email, anonymity
+# Setup: $0 version (no domain purchase)
 
-Status (checked 2026-11-02): **qalamcreative.com is unregistered**; the .com registry (Verisign RDAP) returns 404 for it.
+| Piece | Free option | Status |
+|---|---|---|
+| Website | **Surge.sh** → `https://qalamcreative.surge.sh` (subdomain checked free on 2026-11-02) | Built (`site/`), deploys as soon as the Zoho email exists |
+| Email | **Zoho Mail free personal account** → e.g. `qalamcreative@zohomail.com` | **You do this (3 min)**; needs a CAPTCHA + a one-time code |
+| Dent Care mockup | `qalamcreative.surge.sh/concepts/dentcare/` | Built, unlisted (`noindex`) |
 
-> I can't complete purchases myself: there's no payment method or registrar account in this environment, and buying things should stay in your hands. Everything below takes about 20 minutes, and nothing in it needs your real name to be public.
+## 1. Zoho Mail account (you: ~3 minutes)
 
-## 1. Domain: Cloudflare Registrar (~$11/yr)
+Zoho's signup has a CAPTCHA and sends a one-time code to your phone/email. Claude can't solve or bypass those, so this one step is yours.
 
-Cloudflare sells at wholesale cost with no markup on renewal. It's the cheapest .com over time (~$10.5 to $11/yr; the .com wholesale price went up on 1 Nov 2026). WHOIS privacy is free and on by default, so your name and address are redacted.
+1. Go to **zoho.com/mail** → **Sign up** → choose the **Personal Email** tab (this one needs no domain).
+2. Name: `Qalam`. Username: `qalamcreative` (fallbacks: `qalam.studio`, `hello.qalam`).
+3. Pick the **English** interface.
+4. Verify the code and you're done. Then send me the address.
+5. Settings → **Sender name**: `Qalam | قلم` (no personal name). Settings → **Signature**: `فريق قلم | Qalam · qalamcreative.surge.sh`.
 
-1. Create a Cloudflare account (use a fresh email, not your personal one, if you want the account itself separated).
-2. Dashboard → **Domain Registration → Register Domains** → `qalamcreative.com` → pay.
-3. Registrant contact: Cloudflare requires real details (ICANN rule) but **redacts them publicly**. Do not enter fake details; that can get the domain suspended.
+Note: Zoho's free "Forever Free" *business* plan needs a domain you own, so without buying one the free personal `@zohomail.com` address is the route. Later, buying a ~$11/yr domain is the single biggest upgrade for trust and deliverability.
 
-Alternative: Porkbun (~$11/yr flat, free WHOIS privacy). Avoid registrars with cheap first years and $18+ renewals (e.g. Namecheap, GoDaddy).
+## 2. Website deploy (me, once I have the email)
 
-## 2. Email: hello@qalamcreative.com, free
+```bash
+qalam/site/build.sh qalamcreative@zohomail.com
+```
 
-**Recommended: Zoho Mail "Forever Free"**: up to 5 mailboxes on 1 custom domain, 5 GB each, $0. (Free plan is web + mobile app; upgrade to Mail Lite at $1/user/mo if you need IMAP/Outlook.)
+```bash
+surge qalam/site/dist qalamcreative.surge.sh
+```
 
-1. zoho.com/mail → Pricing → **Forever Free** → sign up with `qalamcreative.com`.
-2. Verify domain (TXT record in Cloudflare DNS).
-3. Create mailboxes: `hello@` (outbound + replies). Optionally `studio@` as an alias.
-4. Add the DNS records Zoho shows you in Cloudflare:
-   - **MX**: `mx.zoho.com` (10), `mx2.zoho.com` (20), `mx3.zoho.com` (50)
-   - **SPF** (TXT @): `v=spf1 include:zoho.com ~all`
-   - **DKIM** (TXT `zmail._domainkey`): generated in Zoho Admin → Email Authentication
-   - **DMARC** (TXT `_dmarc`): `v=DMARC1; p=none; rua=mailto:hello@qalamcreative.com`
+The Surge login uses the Zoho address. The site never shows a personal name.
 
-Free fallback if Zoho's free plan isn't offered in your region: Cloudflare Email Routing (free inbound forwarding to any inbox) + Gmail "Send mail as" via an SMTP relay. It works, but deliverability is weaker.
+## 3. Sending rules (free mailbox = be gentle)
 
-## 3. Deliverability rules for cold outbound
+- Free mailboxes have low daily send limits and lower reputation. **Max ~10 cold emails/day**, plain text, one link.
+- Send manually from Zoho webmail, one at a time, starting with Dent Care.
+- Use Zoho's free inbox for 2–3 days first (sign up to a few newsletters, reply to them) before cold sending.
 
-- **Warm up first**: 2 weeks of light, normal use before cold sending. Then start at ~10 emails/day and grow to ~30/day max from one mailbox.
-- Plain text, no images or attachments, **at most 1 link** (your site), no tracking pixels in the first touch.
-- Every email has an opt-out line (included in the drafts).
-- Optional, safer at scale: buy a second domain for cold email (e.g. `qalamstudio.co`) so the main domain's reputation is never at risk.
-- Put up a one-page site at qalamcreative.com before sending. Prospects will check it. Cloudflare Pages hosts it for free; I can build it (Arabic-first, RTL).
+## 4. "How do I add a payment method / registrar here?"
 
-## 4. Keeping you out of it
+You can't. This Claude session has no checkout or wallet, and nothing here can spend money. If you ever buy the domain, you do it yourself in a browser (Cloudflare Registrar, ~$11/yr, free WHOIS privacy), then tell me. I'll handle DNS, connect it to the site, and move email to `hello@qalamcreative.com` via Zoho's free business plan.
 
-- WHOIS: redacted by Cloudflare/Porkbun (above).
-- Emails are signed **«فريق قلم» / Qalam team**, never a personal name. I have **not** invented a fake founder persona: if a prospect later finds out a "person" never existed, it kills trust, and in Saudi Arabia/the UAE it can create problems with commercial-messaging rules that require you to identify the sender honestly. The brand is the sender.
-- Zoho account + Cloudflare account: register with a dedicated email (e.g. a new Gmail used only for Qalam).
-- When a client signs, the contract/invoice must come from a legal entity (you as a freelancer or a company). Plan for that before the first deal: a freelance permit (KSA "Freelance" document, UAE free-zone freelance licence) keeps it in the business's name.
+## 5. Staying anonymous
+
+- Emails are signed **فريق قلم / Qalam team**; no personal name, and no fake persona either (that backfires if discovered, and Gulf messaging rules expect an honestly identified sender).
+- Zoho and Surge accounts use the Qalam address only.
+- When a client wants to sign, the contract has to come from a legal entity (you as a freelancer, or a company). Plan that before deal #1.

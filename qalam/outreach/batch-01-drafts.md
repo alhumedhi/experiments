@@ -6,37 +6,39 @@
 - Regional tone: **Riyadh** formal Najdi warmth (حيّاكم الله) · **Jeddah** Hijazi courtesy (يعطيكم العافية) · **Kuwait** Kuwaiti greeting (عساكم بخير) · **Qatar** Gulf formal.
 - Offer: a **free mockup** of a clearer booking flow, no commitment. Low-friction "yes".
 - Signed as the studio (**فريق قلم**), no personal name. Every email has an opt-out line.
-- Sender: `hello@qalamcreative.com` (after setup + warm-up; see `setup.md`).
+- Sender: your free Zoho address (`{{EMAIL}}`); links point to the free site `{{SITE}}`.
+- Batch scope: prospects 1–6 only (MD Clinics, Dent Medical and Green Dent dropped).
 
 Follow-up plan: if no reply, one follow-up after 4 days (template at the bottom), then stop.
 
 ---
 
-## 1. Dent Care, Riyadh → support@dentcaresaudi.com
+## 1. Dent Care, Riyadh → support@dentcaresaudi.com  ⭐ FIRST TO SEND
 
-**الموضوع:** عروض دنت كير لا تظهر لمن يتصفح من الجوال
+**الموضوع:** عروض دنت كير انتهت قبل يومين وما زالت في الصفحة الرئيسية
 
 السلام عليكم ورحمة الله وبركاته،
 حيّاكم الله.
 
-تصفحنا موقع مجمع دنت كير من الجوال، ولاحظنا أن عروضكم القوية (الزراعة من 4000 ريال، وخصم 20% على التقويم الشفاف) موضوعة داخل صورة بوستر صغيرة، فلا تُقرأ على شاشة الجوال ولا يراها قوقل عند البحث.
+تصفحنا موقع مجمع دنت كير من الجوال، ولاحظنا أن عروضكم (الزراعة من 4000 ريال، وخصم 20% على التقويم) مكتوب فيها «سارية إلى 31/10/2026»، أي أنها انتهت وما زالت أول ما يراه الزائر. وهي أيضاً داخل صورة بوستر صغيرة لا تُقرأ على الجوال ولا يراها قوقل.
 
-ولاحظنا أيضاً:
+ولاحظنا كذلك:
 - عنواناً كبيراً في الصفحة يظهر فيه اسم النطاق «dentcaresaudi» بدل اسم المجمع.
 - ثلاثة أزرار حجز مختلفة، فلا يعرف الزائر أيها يحجز فعلاً.
 - الصفحة استغرقت قرابة 28 ثانية حتى اكتمل تحميلها في تجربتنا.
 
-مجمع يخدم أهل الرياض منذ 2006 يستحق موقعاً يحوّل هذه الثقة إلى مواعيد.
+بادرنا وجهّزنا تصوراً مجانياً لصفحة رئيسية لدنت كير: العروض نصاً واضحاً، وحجز من ثلاث لمسات (الخدمة، ثم الوقت، ثم الاسم والجوال)، وأزرار اتصال وواتساب ثابتة أسفل الشاشة. افتحوه من الجوال:
+{{SITE}}/concepts/dentcare/
 
-نحن «قلم»، استوديو تصميم متخصص في إعادة تصميم المواقع والمنتجات الرقمية للشركات في العالم العربي. يسعدنا أن نرسل لكم تصوراً مجانياً لصفحة رئيسية تُبرز العروض وتختصر الحجز في زر واحد، بدون أي التزام. هل يناسبكم؟
+نحن «قلم»، استوديو تصميم متخصص في إعادة تصميم المواقع والمنتجات الرقمية للشركات في العالم العربي. إن أعجبكم التصور، يسعدنا أن نناقش تنفيذه، بدون أي التزام.
 
 مع خالص التحية،
 فريق قلم | Qalam
-qalamcreative.com
+{{SITE}}
 
 إن لم يكن الموضوع من اهتمامكم، يكفي الرد بكلمة «لا» ولن نراسلكم مرة أخرى.
 
-> _Gist (EN):_ your offers are buried in an unreadable poster image; a heading shows the raw domain; 3 competing booking buttons; ~28 s load. Free mockup offer.
+> _Gist (EN):_ your offers expired on 31 Oct and are still the first thing visitors see, inside an unreadable poster image; a heading shows the raw domain; 3 competing booking buttons; ~28 s load. **We already built you a free mockup: link.** (`{{SITE}}` is replaced by the live site URL at deploy.)
 
 ---
 
@@ -58,7 +60,7 @@ qalamcreative.com
 
 مع خالص التحية،
 فريق قلم | Qalam
-qalamcreative.com
+{{SITE}}
 
 إن لم يكن الموضوع من اهتمامكم، يكفي الرد بكلمة «لا» ولن نراسلكم مرة أخرى.
 
@@ -81,7 +83,7 @@ qalamcreative.com
 
 مع التحية،
 فريق قلم | Qalam
-qalamcreative.com
+{{SITE}}
 
 إن لم يكن الموضوع من اهتمامكم، يكفي الرد بكلمة «لا» ولن نراسلكم مرة أخرى.
 
@@ -109,7 +111,7 @@ qalamcreative.com
 
 مع التحية،
 فريق قلم | Qalam
-qalamcreative.com
+{{SITE}}
 
 إن لم يكن الموضوع من اهتمامكم، يكفي الرد بكلمة «لا» ولن نراسلكم مرة أخرى.
 
@@ -134,7 +136,7 @@ qalamcreative.com
 
 مع التحية،
 فريق قلم | Qalam
-qalamcreative.com
+{{SITE}}
 
 إن لم يكن الموضوع من اهتمامكم، يكفي الرد بكلمة «لا» ولن نراسلكم مرة أخرى.
 
@@ -157,44 +159,11 @@ qalamcreative.com
 
 مع خالص التحية،
 فريق قلم | Qalam
-qalamcreative.com
+{{SITE}}
 
 إن لم يكن الموضوع من اهتمامكم، يكفي الرد بكلمة «لا» ولن نراسلكم مرة أخرى.
 
 > _Gist:_ English-only 6-field form with US date format; WhatsApp button covers the email field.
-
----
-
-## 7. Dent Medical Complex, Riyadh → WhatsApp +966 50 991 9924 / IG @dent.sa
-_No public email. Shorter version for WhatsApp/DM; send from a Qalam business WhatsApp/IG, not your personal number._
-
-السلام عليكم، حيّاكم الله 🌿
-معكم فريق «قلم»، استوديو تصميم مواقع.
-أكثر من 4000 تقييم لمجمع دنت، ما شاء الله. جربنا الحجز من موقعكم على الجوال ولاحظنا 3 أشياء تُفقدكم مواعيد:
-1) لازم يختار المراجع القسم ثم الخدمة ثم «بحث» قبل ما يشوف أي موعد.
-2) الشريط العلوي يغطي نموذج الحجز أثناء النزول.
-3) الصفحة أعرض من الشاشة فتتحرك يمين ويسار.
-نقدر نرسل لكم تصوراً مجانياً لحجز من خطوتين، بدون التزام. يناسبكم نرسله؟ ولمن نوجّهه؟
-
----
-
-## 8. MD Clinics (Dr. Maha Dahlan), Jeddah → phone/IG (find on Google Maps listing)
-_⚠️ Check mahadahlan.com right before sending. Only send if it still shows "Deployment Paused"._
-
-السلام عليكم ورحمة الله، يعطيكم العافية.
-معكم فريق «قلم»، استوديو تصميم مواقع. حبينا ننبهكم أن موقع مجمع عيادات د. مها دحلان (mahadahlan.com) متوقف حالياً، ويظهر لكل زائر رسالة خطأ بالإنجليزية «Deployment Paused» من شركة الاستضافة. وهذا يعني أن كل من يضغط رابط الموقع من قوقل ماب أو إنستقرام لا يجد شيئاً.
-
-غالباً السبب إعداد أو اشتراك في الاستضافة ويُحل بسرعة. وإذا رغبتم، يسعدنا أن نرسل لكم تصوراً مجانياً لموقع جديد يليق بتقييمكم (4.8 من أكثر من 1100 مراجعة)، بدون أي التزام.
-
-فريق قلم | qalamcreative.com
-
----
-
-## 9. Green Dent, Jeddah → WhatsApp +966 54 440 7607 / IG @green_dent_sa
-
-السلام عليكم، يعطيكم العافية 🌿
-معكم فريق «قلم»، استوديو تصميم مواقع. فتحنا موقع جرين دنت من الجوال وظلت الصفحة شاشة داكنة مع علامة تحميل، ونصف الصور تقريباً (50 من 117) ما ظهرت في تجربتنا. وزر «حجز موعد» ظاهر بشكل مائل على طرف الشاشة فيصعب الانتباه له.
-نقدر نرسل لكم تصوراً مجانياً لصفحة رئيسية سريعة بزر حجز واضح، بدون التزام. يناسبكم؟
 
 ---
 
@@ -205,4 +174,4 @@ _⚠️ Check mahadahlan.com right before sending. Only send if it still shows "
 السلام عليكم،
 أعيد إرسال رسالتي السابقة باختصار: جهّزنا ملاحظات محددة على مسار الحجز في موقعكم، ويسعدنا أن نرسل لكم تصوراً مجانياً للحل خلال أيام. يكفي الرد بـ«نعم» ونرسله.
 
-فريق قلم | qalamcreative.com
+فريق قلم | {{SITE}}

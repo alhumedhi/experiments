@@ -1,5 +1,7 @@
 # Batch 1: prospects (clinics, KSA · Kuwait · Qatar)
 
+> **Active outreach: #1–6.** #7–9 are parked (no public email; MD Clinics dropped).
+
 Audited 2026-11-02 on a real mobile browser (iPhone 13 profile). Review counts are Google's, via the Zavis clinic directory.
 Priority: **A** = clear revenue leak + reachable by email · **B** = strong leak, reach via WhatsApp/Instagram/phone.
 
@@ -20,6 +22,7 @@ Priority: **A** = clear revenue leak + reachable by email · **B** = strong leak
 ## Findings per prospect
 
 ### 1. Dent Care, Riyadh ([evidence](evidence/dentcare-mobile.jpg))
+- The offers say **"valid until 31/10/2026"**: expired, but still the first thing on the homepage.
 - The offers (implants from 4,000 SAR, 20% off aligners) are **inside a small poster image**: unreadable on a phone and invisible to Google.
 - A large heading literally reads **"dentcaresaudi"** (the domain name); the page title in Google is "الصفحة الرئيسية - dentcaresaudi.com".
 - **Three competing booking buttons** ("لحجز موعد أضغط هنا", "تحديد موعد", "سجل بياناتك الآن"), so it's unclear which one books.
