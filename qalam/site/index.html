@@ -4,251 +4,57 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Qalam</title>
-<meta name="description" content="Qalam is a design studio for businesses across the Arab world.">
-<meta name="theme-color" content="#173f2c">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' fill='%23173f2c'/><path d='M9 23 L23 9' stroke='%23c9a46a' stroke-width='3'/></svg>">
+<meta name="description" content="Qalam is a design studio. We redesign websites and apps for businesses in the Arab world.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' fill='%23000'/><path d='M10 22 L22 10' stroke='%23fff' stroke-width='3'/></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600&family=IBM+Plex+Sans+Arabic:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-:root{
- --forest:#173f2c; --forest-2:#0f2e20; --moss:#2f6b4c; --ivory:#f3efe6; --paper:#faf8f3;
- --brass:#c9a46a; --ink:#101a14; --mute:#5c6b62; --line:rgba(16,26,20,.14); --line-l:rgba(243,239,230,.16);
- --ease:cubic-bezier(.2,.7,.1,1);
-}
 *{box-sizing:border-box;margin:0;padding:0}
-html{scroll-behavior:smooth}
-body{background:var(--paper);color:var(--ink);font:400 17px/1.5 "Inter Tight","IBM Plex Sans Arabic",Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased}
-[dir=rtl] body{font-family:"IBM Plex Sans Arabic","Inter Tight",sans-serif}
-a{color:inherit;text-decoration:none}
-::selection{background:var(--brass);color:var(--forest-2)}
-.g{max-width:1320px;margin:0 auto;padding:0 32px;display:grid;grid-template-columns:repeat(12,1fr);column-gap:24px}
-.label{font-size:12px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;display:flex;align-items:center;gap:10px}
-[dir=rtl] .label{letter-spacing:0;font-size:14px}
-.label::before{content:"";width:8px;height:8px;background:var(--brass);flex:none}
-
-#prog{position:fixed;top:0;inset-inline-start:0;height:3px;width:100%;background:var(--brass);transform-origin:left;transform:scaleX(0);z-index:50}
-[dir=rtl] #prog{transform-origin:right}
-
-nav{position:fixed;top:0;inset-inline:0;z-index:40;color:var(--ivory);transition:background .5s var(--ease),color .5s var(--ease),box-shadow .5s}
-nav.solid{background:rgba(250,248,243,.86);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);color:var(--forest);box-shadow:0 1px 0 var(--line)}
-nav .g{height:72px;align-items:center}
-nav .mark{grid-column:1/5;font-weight:700;font-size:20px;letter-spacing:-.02em;display:flex;gap:10px;align-items:baseline}
-nav .mark span{font-family:"IBM Plex Sans Arabic";font-weight:600;font-size:18px;opacity:.7}
-nav .links{grid-column:5/13;display:flex;justify-content:flex-end;gap:32px;font-size:14px;font-weight:500}
-nav button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
-nav .links a,nav button{position:relative}
-nav .links a::after,nav button::after{content:"";position:absolute;inset-inline:0;bottom:-4px;height:1px;background:currentColor;transform:scaleX(0);transition:transform .4s var(--ease);transform-origin:left}
-nav .links a:hover::after,nav button:hover::after{transform:scaleX(1)}
-
-.hero{position:relative;min-height:100svh;background:var(--forest);color:var(--ivory);overflow:hidden;display:flex;align-items:flex-end;padding:140px 0 56px}
-.cols{position:absolute;inset:0;max-width:1320px;margin:0 auto;padding:0 32px;display:grid;grid-template-columns:repeat(12,1fr);column-gap:24px;pointer-events:none}
-.cols i{border-inline-start:1px solid var(--line-l);transform:scaleY(0);transform-origin:top;transition:transform 1.4s var(--ease)}
-.cols i:last-child{border-inline-end:1px solid var(--line-l)}
-.ready .cols i{transform:scaleY(1)}
-.cols i:nth-child(2){transition-delay:.05s}.cols i:nth-child(3){transition-delay:.1s}.cols i:nth-child(4){transition-delay:.15s}.cols i:nth-child(5){transition-delay:.2s}.cols i:nth-child(6){transition-delay:.25s}.cols i:nth-child(7){transition-delay:.3s}.cols i:nth-child(8){transition-delay:.35s}.cols i:nth-child(9){transition-delay:.4s}.cols i:nth-child(10){transition-delay:.45s}.cols i:nth-child(11){transition-delay:.5s}.cols i:nth-child(12){transition-delay:.55s}
-.stroke{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
-.stroke path{fill:none;stroke:var(--brass);stroke-width:2;stroke-linecap:round;stroke-dasharray:var(--len);stroke-dashoffset:var(--len);transition:stroke-dashoffset 3.2s cubic-bezier(.6,.1,.2,1) .5s;vector-effect:non-scaling-stroke}
-.ready .stroke path{stroke-dashoffset:0}
-.orb{position:absolute;width:56vmax;height:56vmax;border-radius:50%;background:radial-gradient(circle at 35% 35%,var(--moss),transparent 62%);inset-inline-end:-14vmax;top:-18vmax;opacity:.55;filter:blur(10px);animation:drift 18s ease-in-out infinite alternate}
-@keyframes drift{to{transform:translate(-6vmax,8vmax) scale(1.08)}}
-.hero .g{position:relative;width:100%;row-gap:40px}
-.hero .label{grid-column:1/13;color:var(--brass)}
-.big{grid-column:1/13;font-weight:600;font-size:clamp(56px,10.4vw,168px);line-height:.92;letter-spacing:-.045em}
-[dir=rtl] .big{letter-spacing:0;line-height:1.18;font-size:clamp(48px,8.6vw,136px)}
-.ln{display:block;overflow:hidden;padding-bottom:.04em}
-.ln>span{display:block;transform:translateY(105%);transition:transform 1.2s var(--ease)}
-.ready .ln>span{transform:none}
-.ln:nth-child(2)>span{transition-delay:.12s}.ln:nth-child(3)>span{transition-delay:.24s}
-.big em{font-style:normal;color:var(--brass)}
-.hero .sub{grid-column:1/6;font-size:19px;line-height:1.45;color:rgba(243,239,230,.78);opacity:0;transform:translateY(16px);transition:all 1s var(--ease) .6s}
-.hero .cta{grid-column:9/13;justify-self:end;align-self:end;opacity:0;transform:translateY(16px);transition:all 1s var(--ease) .75s}
-.ready .hero .sub,.ready .hero .cta{opacity:1;transform:none}
-.pill{display:inline-flex;align-items:center;gap:14px;border:1px solid var(--ivory);color:var(--ivory);border-radius:999px;padding:16px 26px;font-weight:500;position:relative;overflow:hidden;isolation:isolate;transition:color .5s var(--ease)}
-.pill::before{content:"";position:absolute;inset:0;background:var(--ivory);transform:translateY(101%);transition:transform .5s var(--ease);z-index:-1}
-.pill:hover{color:var(--forest)}.pill:hover::before{transform:none}
-.pill .ar{display:inline-block;transition:transform .5s var(--ease)}.pill:hover .ar{transform:translateX(4px)}
-[dir=rtl] .pill .ar{transform:scaleX(-1)}[dir=rtl] .pill:hover .ar{transform:scaleX(-1) translateX(4px)}
-.badge{position:absolute;inset-inline-end:32px;top:110px;width:132px;height:132px;animation:spin 22s linear infinite;opacity:0;transition:opacity 1s 1.2s}
-.ready .badge{opacity:1}
-.badge text{fill:var(--ivory);font-size:10.5px;letter-spacing:.24em;font-weight:500;text-transform:uppercase}
-@keyframes spin{to{transform:rotate(360deg)}}
-
-.marquee{background:var(--brass);color:var(--forest-2);overflow:hidden;white-space:nowrap}
-.track{display:inline-flex;gap:48px;padding:18px 0;animation:mq 38s linear infinite;font-size:22px;font-weight:600;letter-spacing:-.01em}
-[dir=rtl] .track{animation-name:mqr}
-.track span::after{content:"—";margin-inline-start:48px;opacity:.5}
-@keyframes mq{to{transform:translateX(-50%)}}@keyframes mqr{to{transform:translateX(50%)}}
-
-section{padding:140px 0}
-.intro .label{grid-column:1/4;color:var(--moss);align-self:start;padding-top:14px}
-.intro h2{grid-column:4/13;font-size:clamp(34px,4.4vw,64px);line-height:1.04;letter-spacing:-.035em;font-weight:600}
-[dir=rtl] .intro h2{letter-spacing:0;line-height:1.35}
-.intro h2 .dim{color:#a3ada6;transition:color .5s}
-.intro p{grid-column:4/9;margin-top:40px;font-size:19px;color:var(--mute)}
-
-.principles{background:var(--forest-2);color:var(--ivory)}
-.principles .head{grid-column:1/13;display:flex;justify-content:space-between;align-items:end;margin-bottom:64px;gap:24px;flex-wrap:wrap}
-.principles .label{color:var(--brass)}
-.principles h2{font-size:clamp(34px,4.4vw,64px);letter-spacing:-.035em;font-weight:600;line-height:1}
-[dir=rtl] .principles h2{letter-spacing:0;line-height:1.3}
-.card{grid-column:span 4;border-top:1px solid var(--line-l);padding:32px 0 8px;position:relative}
-.card::before{content:"";position:absolute;top:-1px;inset-inline-start:0;height:2px;width:100%;background:var(--brass);transform:scaleX(0);transform-origin:left;transition:transform 1.1s var(--ease) .2s}
-[dir=rtl] .card::before{transform-origin:right}
-.card.in::before{transform:scaleX(1)}
-.card .k{font-family:"IBM Plex Sans Arabic";font-size:44px;color:var(--brass);line-height:1;display:block;margin-bottom:56px}
-.card h3{font-size:28px;font-weight:600;letter-spacing:-.02em;margin-bottom:12px}
-[dir=rtl] .card h3{letter-spacing:0}
-.card p{color:rgba(243,239,230,.7);font-size:17px;max-width:32ch}
-
-.process .label{grid-column:1/13;color:var(--moss);margin-bottom:48px}
-.step{grid-column:1/13;display:grid;grid-template-columns:repeat(12,1fr);column-gap:24px;border-top:1px solid var(--line);padding:40px 0;align-items:baseline;position:relative;overflow:hidden;isolation:isolate;transition:color .6s var(--ease),padding .6s var(--ease),opacity 1s var(--ease),transform 1s var(--ease)}
-.step:last-child{border-bottom:1px solid var(--line)}
-.step::after{content:"";position:absolute;inset:0;background:var(--forest);transform:translateY(101%);transition:transform .6s var(--ease);z-index:-1}
-.step:hover{color:var(--ivory);padding-inline:24px}
-.step:hover::after{transform:none}
-.step h3{grid-column:1/7;font-size:clamp(44px,6.6vw,104px);font-weight:600;letter-spacing:-.045em;line-height:.95}
-[dir=rtl] .step h3{letter-spacing:0;line-height:1.2}
-.step p{grid-column:8/13;font-size:19px;color:var(--mute);transition:color .6s}
-.step:hover p{color:rgba(243,239,230,.8)}
-
-.contact{background:var(--ivory);padding:160px 0 120px}
-.contact .label{grid-column:1/13;color:var(--moss);margin-bottom:40px}
-.contact h2{grid-column:1/13;font-size:clamp(56px,10vw,160px);font-weight:600;letter-spacing:-.05em;line-height:.9;color:var(--forest)}
-[dir=rtl] .contact h2{letter-spacing:0;line-height:1.15}
-.contact p{grid-column:1/6;margin-top:48px;font-size:19px;color:var(--mute)}
-.contact .act{grid-column:8/13;margin-top:48px;align-self:end;justify-self:end;text-align:end}
-.contact .pill{border-color:var(--forest);color:var(--forest)}
-.contact .pill::before{background:var(--forest)}.contact .pill:hover{color:var(--ivory)}
-.mail{display:block;margin-top:18px;font-size:15px;color:var(--mute);border-bottom:1px solid transparent;transition:border-color .3s;width:max-content;margin-inline-start:auto}
-.mail:hover{border-color:currentColor}
-footer{background:var(--forest);color:rgba(243,239,230,.7);font-size:13px}
-footer .g{padding-top:28px;padding-bottom:28px}
-footer span:first-child{grid-column:1/7}footer span:last-child{grid-column:7/13;text-align:end}
-
-.rv{opacity:0;transform:translateY(28px);transition:opacity 1s var(--ease),transform 1s var(--ease)}
-.rv.in{opacity:1;transform:none}
-.step.rv{transition:color .6s var(--ease),padding .6s var(--ease),opacity 1s var(--ease),transform 1s var(--ease)}
-
-@media (max-width:900px){
- .g{padding:0 20px;column-gap:12px}.cols{padding:0 20px;column-gap:12px;grid-template-columns:repeat(4,1fr)}
- .cols i:nth-child(n+5){display:none}
- nav .links a{display:none}
- .hero .sub,.hero .cta,.intro .label,.intro h2,.intro p,.step h3,.step p,.contact p,.contact .act{grid-column:1/13}
- .hero .cta{justify-self:start}.contact .act{justify-self:start;text-align:start}.mail{margin-inline-start:0}
- .card{grid-column:1/13;margin-bottom:24px}.card .k{margin-bottom:28px}
- .step p{margin-top:12px}.step:hover{padding-inline:12px}
- .badge{display:none}.stroke{opacity:.45}
- section{padding:96px 0}.intro .label{margin-bottom:20px}.intro p{margin-top:28px}
- footer span{grid-column:1/13!important;text-align:start!important}
+body{background:#fff;color:#000;font:400 18px/1.45 "Inter Tight",Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased}
+[dir=rtl] body{font-family:"IBM Plex Sans Arabic",sans-serif}
+a{color:inherit}
+.page{min-height:100svh;display:grid;grid-template-rows:auto 1fr auto;padding:28px 32px}
+.top,.bottom{display:grid;grid-template-columns:repeat(12,1fr);gap:24px;font-size:14px}
+.top .l,.bottom .l{grid-column:1/7}.top .r,.bottom .r{grid-column:7/13;text-align:end}
+button{font:inherit;background:none;border:0;cursor:pointer;color:inherit;text-decoration:underline;text-underline-offset:3px}
+main{display:grid;grid-template-columns:repeat(12,1fr);gap:24px;align-content:end;padding:12vh 0 8vh}
+h1{grid-column:1/13;font-weight:600;font-size:clamp(88px,19vw,300px);line-height:.82;letter-spacing:-.06em;border-bottom:2px solid #000;padding-bottom:28px}
+[dir=rtl] h1{letter-spacing:0;line-height:1.05;font-size:clamp(96px,20vw,320px);padding-bottom:.32em}
+.a{grid-column:1/6;padding-top:24px;font-size:22px;line-height:1.35}
+.b{grid-column:7/12;padding-top:24px;font-size:22px;line-height:1.35}
+.b a{text-decoration:underline;text-underline-offset:4px;text-decoration-thickness:1px}
+.b a:hover{text-decoration-thickness:2px}
+.bottom{border-top:1px solid #000;padding-top:14px}
+h1,.a,.b{opacity:0;transform:translateY(12px);transition:opacity .8s ease,transform .8s ease}
+.ready h1,.ready .a,.ready .b{opacity:1;transform:none}
+.ready .a{transition-delay:.15s}.ready .b{transition-delay:.25s}
+@media (max-width:760px){
+ .page{padding:20px}
+ .a,.b{grid-column:1/13;font-size:20px}.b{padding-top:0}
+ main{padding:10vh 0 6vh;gap:18px}
 }
-@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}.ln>span,.rv{transform:none!important;opacity:1!important}.cols i{transform:none}.stroke path{stroke-dashoffset:0}}
+@media (prefers-reduced-motion:reduce){h1,.a,.b{opacity:1;transform:none;transition:none}}
 </style>
 </head>
 <body>
-<div id="prog"></div>
-
-<nav><div class="g">
-  <a class="mark" href="#top">Qalam <span>قلم</span></a>
-  <div class="links">
-    <a href="#practice" data-i="n1">Practice</a>
-    <a href="#process" data-i="n2">Process</a>
-    <a href="#contact" data-i="n3">Contact</a>
-    <button id="lang" type="button">العربية</button>
-  </div>
-</div></nav>
-
-<header class="hero" id="top">
-  <div class="orb"></div>
-  <div class="cols"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
-  <svg class="stroke" viewBox="0 0 1440 900" preserveAspectRatio="none" aria-hidden="true">
-    <path id="pen" d="M-40 640 C 220 560, 300 380, 520 420 S 820 700, 1000 520 S 1240 180, 1480 260"/>
-  </svg>
-  <svg class="badge" viewBox="0 0 132 132" aria-hidden="true">
-    <defs><path id="c" d="M66,66 m-52,0 a52,52 0 1,1 104,0 a52,52 0 1,1 -104,0"/></defs>
-    <text><textPath href="#c">Design studio · استوديو تصميم · Design studio ·</textPath></text>
-  </svg>
-  <div class="g">
-    <div class="label" data-i="eb">Design studio · The Arab world</div>
-    <h1 class="big" data-ih="h1"><span class="ln"><span>Quietly</span></span><span class="ln"><span>exceptional</span></span><span class="ln"><span><em>websites.</em></span></span></h1>
-    <p class="sub" data-i="sub">We redesign websites and digital products for established businesses across the Arab world, with the care you'd give your own name.</p>
-    <div class="cta"><a class="pill" href="#contact"><span data-i="cta">Begin a conversation</span><span class="ar">→</span></a></div>
-  </div>
-</header>
-
-<div class="marquee" aria-hidden="true"><div class="track" id="track"></div></div>
-
-<section class="intro" id="practice"><div class="g">
-  <div class="label rv" data-i="l1">The practice</div>
-  <h2 class="rv" id="read" data-i="i1">A good business deserves a website as considered as the business itself. Most don't have one. That's the work we do.</h2>
-  <p class="rv" data-i="i1p">We work with a small number of clients at a time: family businesses, clinics, firms and brands that have earned their reputation and want their website to carry it.</p>
-</div></section>
-
-<section class="principles"><div class="g">
-  <div class="head"><div class="label rv" data-i="l2">Principles</div><h2 class="rv" data-i="p0">What guides us.</h2></div>
-  <div class="card rv"><span class="k">ا</span><h3 data-i="p1">Clarity</h3><p data-i="p1p">One idea on every screen, and an obvious next step. Nothing your customer has to figure out.</p></div>
-  <div class="card rv"><span class="k">ب</span><h3 data-i="p2">Arabic first</h3><p data-i="p2p">Written and designed from right to left from the beginning. Never translated as an afterthought.</p></div>
-  <div class="card rv"><span class="k">ج</span><h3 data-i="p3">Discretion</h3><p data-i="p3p">Restraint over noise. Work that earns trust quietly and lasts for years.</p></div>
-</div></section>
-
-<section class="process" id="process"><div class="g">
-  <div class="label rv" data-i="l3">Process</div>
-  <div class="step rv"><h3 data-i="s1">Look</h3><p data-i="s1p">We use your website the way your customers do, and tell you honestly where it lets them down.</p></div>
-  <div class="step rv"><h3 data-i="s2">Sketch</h3><p data-i="s2p">Before you commit to anything, you see what your website could become.</p></div>
-  <div class="step rv"><h3 data-i="s3">Build</h3><p data-i="s3p">Carefully and quickly, with you involved at every step, and support long after launch.</p></div>
-</div></section>
-
-<section class="contact" id="contact"><div class="g">
-  <div class="label rv" data-i="l4">Contact</div>
-  <h2 class="rv" data-i="c1">Write to us.</h2>
-  <p class="rv" data-i="c1p">Send us your website. We'll reply personally with what we see, and what we'd change.</p>
-  <div class="act rv"><a class="pill" href="mailto:hello@qalamcreative.com"><span data-i="c2">Start the conversation</span><span class="ar">→</span></a><a class="mail" href="mailto:hello@qalamcreative.com">hello@qalamcreative.com</a></div>
-</div></section>
-
-<footer><div class="g"><span data-i="f1">Qalam · قلم: Design studio</span><span data-i="f2">Across the Gulf and the Arab world</span></div></footer>
-
+<div class="page">
+  <div class="top"><span class="l" data-i="t">Design studio</span><span class="r"><button id="lang" type="button">العربية</button></span></div>
+  <main>
+    <h1 data-i="h">Qalam</h1>
+    <p class="a" data-i="a">We redesign websites and apps for businesses in the Arab world.</p>
+    <p class="b"><span data-i="b">Send us your website and we'll tell you what we would change.</span><br><a href="mailto:hello@qalamcreative.com">hello@qalamcreative.com</a></p>
+  </main>
+  <div class="bottom"><span class="l" data-i="f">Qalam</span><span class="r" data-i="g">قلم</span></div>
+</div>
 <script>
-const words={en:["Clarity","Arabic first","Discretion","Considered design","Websites","Digital products","Booking that works"],
- ar:["الوضوح","العربية أولاً","التحفّظ","تصميم متأنٍّ","مواقع","منتجات رقمية","حجز يعمل فعلاً"]};
-const AR={n1:"الممارسة",n2:"طريقة العمل",n3:"تواصل",eb:"استوديو تصميم · العالم العربي",
- h1:'<span class="ln"><span>مواقع</span></span><span class="ln"><span>استثنائية</span></span><span class="ln"><span><em>بهدوء.</em></span></span>',
- sub:"نعيد تصميم المواقع والمنتجات الرقمية للشركات الراسخة في العالم العربي، بالعناية التي تمنحها لاسمك.",
- cta:"لنبدأ الحديث",l1:"الممارسة",
- i1:"العمل الجيد يستحق موقعاً متأنياً بقدره. وأغلب الشركات لا تملك ذلك. وهذا ما نصنعه.",
- i1p:"نعمل مع عدد محدود من العملاء في كل مرة: شركات عائلية، وعيادات، ومكاتب، وعلامات تجارية بنت سمعتها، وتريد لموقعها أن يحملها.",
- l2:"المبادئ",p0:"ما يوجّهنا.",p1:"الوضوح",p1p:"فكرة واحدة في كل شاشة، وخطوة تالية لا تحتاج إلى تفكير.",
- p2:"العربية أولاً",p2p:"يُكتب ويُصمَّم من اليمين إلى اليسار منذ البداية، لا ترجمةً لاحقة.",
- p3:"التحفّظ",p3p:"الهدوء بدل الضجيج. عمل يكسب الثقة بصمت ويدوم لسنوات.",
- l3:"طريقة العمل",s1:"نتأمل",s1p:"نستخدم موقعك كما يستخدمه عملاؤك، ونخبرك بصدق أين يخذلهم.",
- s2:"نرسم",s2p:"قبل أن تلتزم بأي شيء، ترى ما يمكن أن يصبح عليه موقعك.",
- s3:"نبني",s3p:"بعناية وسرعة، ومعك في كل خطوة، ونبقى معك بعد الإطلاق.",
- l4:"تواصل",c1:"راسلنا.",c1p:"أرسل لنا رابط موقعك، ونرد عليك شخصياً بما نراه وما سنغيّره.",c2:"ابدأ الحديث",
- f1:"قلم · Qalam: استوديو تصميم",f2:"في الخليج والعالم العربي"};
-const EN={};document.querySelectorAll('[data-i],[data-ih]').forEach(e=>EN[e.dataset.i||e.dataset.ih]=e.dataset.ih?e.innerHTML:e.textContent);
-const track=document.getElementById('track');
-function fill(l){const w=words[l];track.innerHTML=[...w,...w,...w,...w].map(x=>`<span>${x}</span>`).join('')}
-const read=document.getElementById('read');
-function splitRead(){read.innerHTML=read.textContent.split(' ').map(w=>`<span class="dim">${w}</span>`).join(' ')}
-function paintRead(){const r=read.getBoundingClientRect();const p=Math.min(1,Math.max(0,(innerHeight*.85-r.top)/(r.height+innerHeight*.35)));
- const ws=read.children;const n=Math.round(p*ws.length);for(let i=0;i<ws.length;i++)ws[i].style.color=i<n?'var(--ink)':''}
+const AR={t:"استوديو تصميم",h:"قلم",a:"نعيد تصميم المواقع والتطبيقات للشركات في العالم العربي.",b:"أرسل لنا رابط موقعك، ونخبرك بما سنغيّره.",f:"قلم",g:"Qalam"};
+const EN={};document.querySelectorAll('[data-i]').forEach(e=>EN[e.dataset.i]=e.textContent);
 function setLang(l){const h=document.documentElement;h.lang=l;h.dir=l==='ar'?'rtl':'ltr';const d=l==='ar'?AR:EN;
- document.querySelectorAll('[data-i]').forEach(e=>{if(d[e.dataset.i])e.textContent=d[e.dataset.i]});
- document.querySelectorAll('[data-ih]').forEach(e=>{if(d[e.dataset.ih])e.innerHTML=d[e.dataset.ih]});
- document.getElementById('lang').textContent=l==='ar'?'English':'العربية';fill(l);splitRead();paintRead();
- try{localStorage.setItem('qalam-lang',l)}catch(e){}}
+ document.querySelectorAll('[data-i]').forEach(e=>e.textContent=d[e.dataset.i]);
+ document.getElementById('lang').textContent=l==='ar'?'English':'العربية';try{localStorage.setItem('qalam-lang',l)}catch(e){}}
 document.getElementById('lang').onclick=()=>setLang(document.documentElement.lang==='ar'?'en':'ar');
-
-const pen=document.getElementById('pen');pen.style.setProperty('--len',pen.getTotalLength());
-
-const prog=document.getElementById('prog'),big=document.querySelector('.big'),nav=document.querySelector('nav'),hero=document.querySelector('.hero');
-function onScroll(){const y=scrollY,h=document.documentElement.scrollHeight-innerHeight;prog.style.transform=`scaleX(${h?y/h:0})`;
- if(y<innerHeight)big.style.transform=`translateY(${y*-.12}px)`;nav.classList.toggle('solid',y>hero.offsetHeight-72);paintRead()}
-addEventListener('scroll',onScroll,{passive:true});
-const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}}),{threshold:.2,rootMargin:'0px 0px -8% 0px'});
-document.querySelectorAll('.rv').forEach(e=>io.observe(e));
-
-let start='en';try{if(localStorage.getItem('qalam-lang')==='ar')start='ar'}catch(e){}
-if(start==='ar')setLang('ar');else{fill('en');splitRead()}
-requestAnimationFrame(()=>requestAnimationFrame(()=>document.body.classList.add('ready')));onScroll();
+try{if(localStorage.getItem('qalam-lang')==='ar')setLang('ar')}catch(e){}
+requestAnimationFrame(()=>requestAnimationFrame(()=>document.body.classList.add('ready')));
 </script>
 </body>
 </html>
